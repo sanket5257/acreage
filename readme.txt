@@ -48,7 +48,46 @@ running, because it creates the sample farms and builds the pages with them.
 The same screen has a "Remove demo content" button that deletes everything the
 import created, and nothing else.
 
+6. Make it yours: Appearance > Theme Options for the telephone number, email,
+   disclaimer and page wording. Colours and fonts are in Elementor's Site
+   Settings — see the FAQ below.
+
 == Frequently Asked Questions ==
+
+= Where do I change the phone number, email and homepage wording? =
+
+Appearance > Theme Options. It has four tabs:
+
+  Site details    telephone, fax, email and the footer disclaimer. These show
+                  on every page, so this is the tab most people need.
+  Homepage copy   the hero, the statistics band, the featured and province
+                  bands, the about and sell-your-farm sections.
+  Page headings   the masthead on Farms for Sale, Articles and Contact.
+  Colours & fonts where to change them, which is Elementor Site Settings.
+
+Clear any field and it falls back to the theme default, so there is no way to
+end up with a blank header.
+
+= I changed a homepage field and the page did not change. Why? =
+
+Because that page is built in Elementor, and Elementor stores its content in the
+page itself. The Homepage copy fields seed the page when the demo importer
+builds it, and they drive the theme's own homepage when Elementor is not
+running — they are not a live feed into a page that already exists.
+
+Edit a built page the normal way: open it with Elementor and change the text
+there. The Site details tab is different — the telephone number and email are
+read fresh on every page load, so those take effect immediately.
+
+= Where do I change the colours and fonts? =
+
+Edit any page with Elementor, open the hamburger menu at the top left, then
+Site Settings > Global Colors and Site Settings > Global Fonts.
+
+The theme's palette and its two typefaces are mapped onto those, so one change
+there updates every heading, button, border and link across the whole site,
+including pages the demo built. Appearance > Theme Options > Colours & fonts
+lists the palette and the CSS variable behind each colour, for child themes.
 
 = Do I need Elementor Pro? =
 
@@ -65,6 +104,38 @@ reactivate it.
 = Will I lose my listings if I change theme? =
 
 No. They belong to the Acreage Core plugin, not the theme.
+
+= Can I use Contact Form 7 instead of the built-in form? =
+
+Yes, and any other form plugin too. Edit the page in Elementor, select the
+Enquiry Form widget, and pick your form from the Form dropdown. Contact Form 7
+forms are listed there by name. For WPForms, Gravity Forms, Fluent Forms,
+Forminator or anything else, choose "Another form plugin" and paste that
+plugin's shortcode.
+
+The built-in form is the default so a fresh install can be contacted before any
+plugin is installed. Nothing is lost by switching: if the form plugin is later
+deactivated, the widget quietly serves the built-in form again rather than
+leaving the page with no way to make contact.
+
+Whichever plugin you use, its fields are restyled to match the theme.
+
+= Will the enquiry say which farm it is about? =
+
+Yes. On a farm page the theme hands the farm to your form automatically.
+
+In Contact Form 7 the farm arrives as three mail tags you can use anywhere in
+the Mail tab:
+
+  [acreage-farm]      the farm's name
+  [acreage-farm-id]   its numeric ID
+  [acreage-farm-url]  a link straight to the listing
+
+A useful subject line is: Enquiry - [acreage-farm]
+
+For other form plugins, put [acreage_farm_name] or [acreage_farm_url] in a
+field's default value. Both are empty away from a farm page, so a general
+contact form stays clean.
 
 = Can I edit the theme's files? =
 

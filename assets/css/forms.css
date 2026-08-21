@@ -1,0 +1,227 @@
+/*
+ * Third-party contact forms, restyled to match the theme.
+ *
+ * Loaded by inc/forms.php only when one of the supported form plugins is
+ * active, so a site running none of them never downloads this file.
+ *
+ * HOW THIS IS WRITTEN, AND WHY
+ *
+ * Every rule is a plain class selector at low specificity, and there is not one
+ * !important in the file. Form plugins ship their own stylesheet, and the usual
+ * way a theme "wins" is an arms race of !important that the customer then cannot
+ * override from a child theme without a third round. Instead this file is
+ * enqueued at priority 20 — after the plugins' own styles — so equal specificity
+ * is enough, and a child theme's single class selector still beats it.
+ *
+ * Selectors are grouped rather than repeated per plugin wherever the markup
+ * allows, because every one of these plugins renders the same six controls.
+ */
+
+/* ------------------------------------------------------------------ fields */
+
+.wpcf7 input[type="text"],
+.wpcf7 input[type="email"],
+.wpcf7 input[type="tel"],
+.wpcf7 input[type="url"],
+.wpcf7 input[type="number"],
+.wpcf7 input[type="date"],
+.wpcf7 select,
+.wpcf7 textarea,
+.wpforms-container input[type="text"],
+.wpforms-container input[type="email"],
+.wpforms-container input[type="tel"],
+.wpforms-container input[type="url"],
+.wpforms-container input[type="number"],
+.wpforms-container select,
+.wpforms-container textarea,
+.gform_wrapper input[type="text"],
+.gform_wrapper input[type="email"],
+.gform_wrapper input[type="tel"],
+.gform_wrapper input[type="url"],
+.gform_wrapper input[type="number"],
+.gform_wrapper select,
+.gform_wrapper textarea,
+.fluentform input[type="text"],
+.fluentform input[type="email"],
+.fluentform input[type="tel"],
+.fluentform input[type="url"],
+.fluentform input[type="number"],
+.fluentform select,
+.fluentform textarea,
+.forminator-ui input[type="text"],
+.forminator-ui input[type="email"],
+.forminator-ui input[type="tel"],
+.forminator-ui textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid rgba(31, 42, 33, .2);
+  border-radius: 0;
+  background: #fff;
+  color: var(--acreage-ink, #1F2A21);
+  font: inherit;
+  box-shadow: none;
+}
+
+.wpcf7 textarea,
+.wpforms-container textarea,
+.gform_wrapper textarea,
+.fluentform textarea,
+.forminator-ui textarea {
+  min-height: 140px;
+  resize: vertical;
+}
+
+.wpcf7 input:focus,
+.wpcf7 select:focus,
+.wpcf7 textarea:focus,
+.wpforms-container input:focus,
+.wpforms-container select:focus,
+.wpforms-container textarea:focus,
+.gform_wrapper input:focus,
+.gform_wrapper select:focus,
+.gform_wrapper textarea:focus,
+.fluentform input:focus,
+.fluentform select:focus,
+.fluentform textarea:focus,
+.forminator-ui input:focus,
+.forminator-ui textarea:focus {
+  outline: 2px solid var(--acreage-moss, #354027);
+  outline-offset: 1px;
+  border-color: var(--acreage-moss, #354027);
+}
+
+/* ------------------------------------------------------------------ labels */
+
+.wpcf7 label,
+.wpforms-container .wpforms-field-label,
+.gform_wrapper .gfield_label,
+.fluentform .ff-el-input--label label,
+.forminator-ui .forminator-label {
+  display: block;
+  margin: 0 0 6px;
+  font-family: var(--acreage-sans, sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--acreage-ink, #1F2A21);
+  opacity: .7;
+}
+
+/*
+ * Required markers stay red but stop shouting — the plugins default to a bold
+ * standalone asterisk that reads as an error next to an uppercase label.
+ */
+.wpcf7 .wpcf7-not-valid-tip,
+.wpforms-container .wpforms-required-label,
+.gform_wrapper .gfield_required,
+.fluentform .ff-el-is-required.asterisk-right label:after {
+  color: #B3261E;
+  font-weight: 400;
+}
+
+/* ----------------------------------------------------------------- spacing */
+
+.wpcf7 p,
+.wpforms-container .wpforms-field,
+.gform_wrapper .gfield,
+.fluentform .ff-el-group,
+.forminator-ui .forminator-row {
+  margin: 0 0 14px;
+}
+
+/* ------------------------------------------------------------------ button */
+
+.wpcf7 input[type="submit"],
+.wpcf7 button[type="submit"],
+.wpforms-container button[type="submit"],
+.wpforms-container .wpforms-submit,
+.gform_wrapper input[type="submit"],
+.gform_wrapper .gform_button,
+.fluentform button[type="submit"],
+.fluentform .ff-btn-submit,
+.forminator-ui button[type="submit"] {
+  display: inline-block;
+  width: auto;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+  background: var(--acreage-moss, #354027);
+  color: #fff;
+  padding: 13px 30px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  transition: background .2s ease;
+}
+
+.wpcf7 input[type="submit"]:hover,
+.wpcf7 button[type="submit"]:hover,
+.wpforms-container button[type="submit"]:hover,
+.wpforms-container .wpforms-submit:hover,
+.gform_wrapper input[type="submit"]:hover,
+.gform_wrapper .gform_button:hover,
+.fluentform button[type="submit"]:hover,
+.fluentform .ff-btn-submit:hover,
+.forminator-ui button[type="submit"]:hover {
+  background: var(--acreage-moss-deep, #232B18);
+}
+
+/* ---------------------------------------------------------------- messages */
+
+/*
+ * Matches the built-in form's notices: a left rule in the accent colour, red
+ * when something went wrong. Same shape as .acreage-w-form__ok so a page using
+ * one form does not look different from a page using the other.
+ */
+.wpcf7 .wpcf7-response-output,
+.wpforms-container .wpforms-confirmation-container-full,
+.gform_wrapper .gform_confirmation_message,
+.fluentform .ff-message-success {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  border: 0;
+  border-left: 3px solid var(--acreage-moss, #354027);
+  background: rgba(31, 42, 33, .04);
+}
+
+.wpcf7 form.invalid .wpcf7-response-output,
+.wpcf7 form.unaccepted .wpcf7-response-output,
+.wpcf7 form.failed .wpcf7-response-output,
+.gform_wrapper .validation_error,
+.fluentform .ff-message-error {
+  border-left-color: #B3261E;
+}
+
+/* ------------------------------------------------------ inside the widget */
+
+/*
+ * The Enquiry Form widget wraps plugin output in .acreage-w-form--plugin. The
+ * plugins each add their own top margin to the first field, which stacks on the
+ * heading's bottom margin and opens a gap the built-in form does not have.
+ */
+.acreage-w-form--plugin > .wpcf7,
+.acreage-w-form--plugin > .wpforms-container,
+.acreage-w-form--plugin > .gform_wrapper,
+.acreage-w-form--plugin > .fluentform,
+.acreage-w-form--plugin > .forminator-ui {
+  margin-top: 0;
+}
+
+.acreage-w-form--plugin .wpcf7 p:last-child,
+.acreage-w-form--plugin .gform_wrapper .gform_footer {
+  margin-bottom: 0;
+}
+
+/*
+ * The farm-context fields are for the notification email, never for the
+ * visitor. CF7 renders hidden inputs already; this covers plugins that emit a
+ * visible field with the same name.
+ */
+[name="acreage-farm"],
+[name="acreage-farm-id"],
+[name="acreage-farm-url"] {
+  display: none;
+}

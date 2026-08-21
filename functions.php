@@ -59,6 +59,8 @@ acreage_load( 'performance' );       // Things we deliberately do not load.
 acreage_load( 'design-system' );  // Palette + type, synced with Elementor globals.
 acreage_load( 'elementor' );         // Free slot system + Pro Theme Builder.
 acreage_load( 'updates' );           // Update checks and the admin notice.
+acreage_load( 'forms' );             // Styling and farm context for form plugins.
+acreage_load( 'options' );           // Appearance > Theme Options.
 
 /*
  * Legacy — scheduled for removal in Phase 3.
