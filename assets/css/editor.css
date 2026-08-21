@@ -1,0 +1,56 @@
+/*
+ * Editor styles.
+ *
+ * Loaded inside the block editor by add_editor_style() so what a customer types
+ * looks like what a visitor will read. Without it, the editor renders default
+ * browser typography and every customer's first impression is that the theme is
+ * broken.
+ *
+ * Only typography and colour belong here. Layout does not: the editor canvas is
+ * not the page, and trying to reproduce the site's grid inside it produces an
+ * editor that fights the person using it.
+ */
+
+:root{
+  --acreage-paper:#F5F0E4;
+  --acreage-ink:#1F2A21;
+  --acreage-ink-soft:#3C4A3F;
+  --acreage-stone:#8A8172;
+  --acreage-moss:#354027;
+  --acreage-sienna:#9C6423;
+  --acreage-rule:#DED5C0;
+  --acreage-panel:#EFE9DA;
+  --acreage-moss-light:#6E7566;
+  --acreage-serif:Georgia,"Times New Roman",serif;
+  --acreage-sans:"Helvetica Neue",Helvetica,"Segoe UI",Arial,sans-serif;
+}
+
+.editor-styles-wrapper{
+  background:var(--acreage-paper);
+  color:var(--acreage-ink);
+  font-family:var(--acreage-sans);
+  font-size:17px;
+  line-height:1.65;
+}
+
+.editor-styles-wrapper h1,
+.editor-styles-wrapper h2,
+.editor-styles-wrapper h3{
+  font-family:var(--acreage-serif);
+  font-weight:400;
+  color:var(--acreage-moss);
+  line-height:1.2;
+}
+
+.editor-styles-wrapper h1{font-size:2.4rem;}
+.editor-styles-wrapper h2{font-size:1.7rem;}
+.editor-styles-wrapper h3{font-size:1.12rem;}
+
+.editor-styles-wrapper a{color:var(--acreage-moss);}
+
+.editor-styles-wrapper blockquote{
+  border-left:3px solid var(--acreage-moss-light);
+  background:var(--acreage-panel);
+  margin:1.6em 0;
+  padding:16px 22px;
+}

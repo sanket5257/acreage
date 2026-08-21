@@ -1,0 +1,51 @@
+/*
+ * Right-to-left overrides.
+ *
+ * WordPress loads this file automatically instead of nothing when the site
+ * language is RTL — Arabic, Hebrew, Persian, Urdu — because inc/enqueue.php
+ * calls wp_style_add_data( 'acreage', 'rtl', 'replace' ).
+ *
+ * WHAT ACTUALLY BREAKS IN RTL
+ *
+ * Not text: the browser flips that on its own. What breaks is anything that
+ * names a physical side — margin-left, text-align: left, float: right, a chevron
+ * pointing right, a border on one edge. Those keep pointing the same way while
+ * everything around them mirrors, and the layout comes apart.
+ *
+ * PHASE M5 fills this in properly against a real Arabic install. The rules below
+ * cover the structural cases that exist today.
+ *
+ * PREVENTION BEATS PATCHING: in the main stylesheets prefer logical properties —
+ * margin-inline-start instead of margin-left, padding-inline-end instead of
+ * padding-right, text-align: start instead of left. Those mirror by themselves
+ * and need no entry in this file at all.
+ */
+
+/* Skip link parks off-screen on the correct side. */
+.acreage-skip {
+	left: auto;
+	right: -9999px;
+}
+
+.acreage-skip:focus {
+	left: auto;
+	right: 12px;
+}
+
+/* Submenus open from the correct edge. */
+.acreage-hd__nav .sub-menu {
+	left: auto;
+	right: 0;
+}
+
+/* Nested comment replies indent from the correct side. */
+.acreage-comments__list .children {
+	padding-left: 0;
+	padding-right: 28px;
+}
+
+/* Pull quotes take their rule on the correct edge. */
+.acreage-prose blockquote {
+	border-left: 0;
+	border-right: 3px solid var(--acreage-moss-light);
+}

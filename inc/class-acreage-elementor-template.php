@@ -1,0 +1,1417 @@
+<?php
+/**
+ * The homepage, rebuilt as an Elementor template.
+ *
+ * page-home.php reproduces the approved mockup exactly, but it is PHP: opening
+ * it in Elementor shows an empty canvas, because the design is not page content.
+ * That is the right trade for a site nobody needs to rearrange, and the wrong one
+ * for a template people buy.
+ *
+ * So this builds the same homepage out of Elementor sections and the listings
+ * plugin's own widgets. The result opens properly in the editor, every section
+ * can be moved, restyled or deleted, and it still needs nothing from Elementor
+ * Pro — the farm grid, search, tiles and cards are ours.
+ */
+
+defined( 'ABSPATH' ) || exit;
+
+class Acreage_Elementor_Template {
+
+	/** Mockup palette, so the generated template matches the PHP one. */
+	const PAPER  = '#F5F0E4';
+	const RAISED = '#FCFAF2';
+	const GREEN  = '#354027';
+	const DARK   = '#232B18';
+	const OCHRE  = '#9C6423';
+	const RULE   = '#DED5C0';
+	const INK    = '#1F2A21';
+	const MUTED  = '#6E7566';
+	const STONE  = '#8A8172';
+	const LIGHT  = '#E8E6DB';
+
+	const SERIF = 'Georgia, \'Times New Roman\', serif';
+
+	/** @var int Counter so generated element ids are unique but stable in order. */
+	private $seq = 0;
+
+	private function id() {
+		$this->seq++;
+
+		return substr( md5( 'acreage-el-' . $this->seq . wp_rand( 0, PHP_INT_MAX ) ), 0, 7 );
+	}
+
+	private function image( $file ) {
+		return get_template_directory_uri() . '/assets/demo/' . $file;
+	}
+
+	/* ------------------------------------------------------------ builders */
+
+	/*
+	 * EVERY element needs an "elements" array, widgets included.
+	 *
+	 * Elementor's front-end renderer is forgiving and will happily print a widget
+	 * that has no "elements" key. The EDITOR is not: it builds a backbone model
+	 * tree from the same JSON, and a node without that key cannot be instantiated,
+	 * so the section renders on the page but has no handles and cannot be clicked.
+	 *
+	 * That mismatch is horrible to debug, because the page looks perfect and only
+	 * the editor is broken. If you add another builder helper here, give it an
+	 * empty "elements" array even when it can never have children.
+	 *
+	 * "isInner" is likewise expected on sections and columns; Elementor writes it
+	 * on everything it creates itself.
+	 */
+
+	private function widget( $type, $settings = array() ) {
+		return array(
+			'id'         => $this->id(),
+			'elType'     => 'widget',
+			'widgetType' => $type,
+			'settings'   => $settings,
+			'elements'   => array(),
+		);
+	}
+
+	private function column( $elements, $size = 100, $settings = array() ) {
+		return array(
+			'id'       => $this->id(),
+			'elType'   => 'column',
+			'settings' => array_merge( array( '_column_size' => $size, '_inline_size' => null ), $settings ),
+			'elements' => $elements,
+			'isInner'  => false,
+		);
+	}
+
+	private function section( $columns, $settings = array() ) {
+		return array(
+			'id'       => $this->id(),
+			'elType'   => 'section',
+			'settings' => $settings,
+			'elements' => $columns,
+			'isInner'  => false,
+		);
+	}
+
+	/** Padding shorthand in the shape Elementor expects. */
+	private function padding( $top, $right, $bottom, $left ) {
+		return array(
+			'unit'     => 'px',
+			'top'      => (string) $top,
+			'right'    => (string) $right,
+			'bottom'   => (string) $bottom,
+			'left'     => (string) $left,
+			'isLinked' => false,
+		);
+	}
+
+	/**
+	 * A heading, set to the reference type scale.
+	 *
+	 * Elementor writes per-widget typography as inline CSS at a specificity the
+	 * theme stylesheet cannot beat, so the scale has to be applied HERE — setting
+	 * it only in theme.css leaves every generated heading in whatever the builder
+	 * last hardcoded, which is how this page ended up in Georgia 56/400 while the
+	 * stylesheet said Jost 54/500.
+	 *
+	 * $size is the desktop size; tablet and mobile steps are derived so headings
+	 * do not overflow narrow screens.
+	 *
+	 * @param string $text   Heading text.
+	 * @param int    $size   Desktop font size in px.
+	 * @param string $colour Hex colour.
+	 * @param string $tag    HTML tag.
+	 * @param array  $extra  Extra Elementor settings.
+	 * @return array
+	 */
+	private function heading( $text, $size, $colour, $tag = 'h2', $extra = array() ) {
+		$tablet = max( 22, (int) round( $size * 0.78 ) );
+		$mobile = max( 20, (int) round( $size * 0.6 ) );
+
+		return $this->widget( 'heading', array_merge( array(
+			'title'                          => $text,
+			'header_size'                    => $tag,
+			'title_color'                    => $colour,
+			'typography_typography'          => 'custom',
+			'typography_font_family'         => 'Georgia',
+			'typography_font_size'           => array( 'unit' => 'px', 'size' => $size ),
+			'typography_font_size_tablet'    => array( 'unit' => 'px', 'size' => $tablet ),
+			'typography_font_size_mobile'    => array( 'unit' => 'px', 'size' => $mobile ),
+			'typography_font_weight'         => '400',
+			'typography_line_height'         => array( 'unit' => 'em', 'size' => 1.15 ),
+			'typography_letter_spacing'      => array( 'unit' => 'px', 'size' => -0.4 ),
+		), $extra ) );
+	}
+
+	private function eyebrow( $text, $colour = self::OCHRE ) {
+		return $this->widget( 'heading', array(
+			'title'                     => $text,
+			'header_size'               => 'div',
+			'title_color'               => $colour,
+			'typography_typography'     => 'custom',
+			'typography_font_size'      => array( 'unit' => 'px', 'size' => 10 ),
+			'typography_font_weight'    => '700',
+			'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 2.4 ),
+			'typography_text_transform' => 'uppercase',
+		) );
+	}
+
+	private function text( $html, $colour = self::MUTED, $size = 15 ) {
+		return $this->widget( 'text-editor', array(
+			'editor'                 => wpautop( $html ),
+			'text_color'             => $colour,
+			'typography_typography'  => 'custom',
+			'typography_font_size'   => array( 'unit' => 'px', 'size' => $size ),
+			'typography_line_height' => array( 'unit' => 'em', 'size' => 1.65 ),
+		) );
+	}
+
+	private function button( $text, $link, $bg, $colour, $border = '' ) {
+		$settings = array(
+			'text'                      => $text,
+			'link'                      => array( 'url' => $link ),
+			'background_color'          => $bg,
+			'button_text_color'         => $colour,
+			'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
+			'text_padding'              => $this->padding( 15, 28, 15, 28 ),
+			'typography_typography'     => 'custom',
+			'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
+			'typography_font_weight'    => '700',
+			'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
+			'typography_text_transform' => 'uppercase',
+		);
+
+		if ( '' === $bg ) {
+			$settings['background_color'] = 'rgba(0,0,0,0)';
+		}
+
+		if ( $border ) {
+			$settings['border_border'] = 'solid';
+			$settings['border_width']  = array( 'unit' => 'px', 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1', 'isLinked' => true );
+			$settings['border_color']  = $border;
+		}
+
+		return $this->widget( 'button', $settings );
+	}
+
+	/* -------------------------------------------------------------- the page */
+
+	/**
+	 * The whole homepage as Elementor data.
+	 *
+	 * @return array
+	 */
+	public function build() {
+		$farms_url = function_exists( 'acreage_farms_url' ) ? acreage_farms_url() : home_url( '/' );
+
+		return array(
+			$this->hero(),
+			$this->search(),
+			$this->recently_listed( $farms_url ),
+
+			/*
+			 * NO "Featured farms" band.
+			 *
+			 * It is not in the approved comp — it was added while matching a
+			 * different reference, and it put 896px of extra page between the
+			 * listings and the province index. featured() is kept below because the
+			 * "Feature this farm" flag and the carousel are genuinely useful, but
+			 * the homepage does not carry them unless the client asks.
+			 */
+			$this->provinces(),
+			$this->categories(),
+			$this->about(),
+			$this->sell(),
+		);
+	}
+
+	/**
+	 * The land ledger — the signature element of the hero.
+	 *
+	 * A land buyer asks two questions before any other: how much, and where.
+	 * So the hero states the live inventory in the trade's own units rather than
+	 * a marketing claim. It is set small, spaced and tabular so it reads like a
+	 * line on a survey document, not a dashboard: the photograph is the loud
+	 * thing on this page, and one loud thing is the limit.
+	 *
+	 * Every figure is queried, never written down — a hardcoded "80 farms" is
+	 * wrong the day after the client lists the eighty-first.
+	 *
+	 * @return string HTML for a text widget.
+	 */
+	private function ledger() {
+		$farms      = 0;
+		$hectares   = 0;
+		$provinces  = 0;
+
+		if ( post_type_exists( 'listing' ) ) {
+			$ids = get_posts( array(
+				'post_type'      => 'listing',
+				'post_status'    => 'publish',
+				'posts_per_page' => -1,
+				'fields'         => 'ids',
+			) );
+
+			$farms = count( $ids );
+
+			foreach ( $ids as $id ) {
+				$hectares += (float) get_post_meta( $id, 'acreage_hectares', true );
+			}
+
+			$terms     = get_terms( array( 'taxonomy' => 'province', 'hide_empty' => true, 'fields' => 'ids' ) );
+			$provinces = is_wp_error( $terms ) ? 0 : count( $terms );
+		}
+
+		$parts = array();
+
+		if ( $farms ) {
+			/* translators: %s: number of farms currently listed. */
+			$parts[] = sprintf( _n( '%s farm listed', '%s farms listed', $farms, 'acreage' ), number_format_i18n( $farms ) );
+		}
+
+		if ( $hectares > 0 ) {
+			/* translators: %s: total hectares across all listings. */
+			$parts[] = sprintf( __( '%s hectares', 'acreage' ), number_format_i18n( $hectares ) );
+		}
+
+		if ( $provinces ) {
+			/* translators: %s: number of provinces with listings. */
+			$parts[] = sprintf( _n( '%s province', '%s provinces', $provinces, 'acreage' ), number_format_i18n( $provinces ) );
+		}
+
+		if ( ! $parts ) {
+			return '';
+		}
+
+		return '<span class="acreage-ledger">' .
+			implode( '<span class="acreage-ledger__sep" aria-hidden="true"></span>', array_map( 'esc_html', $parts ) ) .
+			'</span>';
+	}
+
+	/**
+	 * The hero.
+	 *
+	 * A full-bleed photograph is the right opening for this subject — the land is
+	 * the product, and the client's drone photography is the strongest asset the
+	 * site has. Three decisions make it work rather than merely look nice:
+	 *
+	 *  1. MEASURE. The headline is capped at 15ch, so on a 1920px monitor it
+	 *     breaks into two or three deliberate lines instead of running the full
+	 *     width as one thin band. Long measures are the single most common way a
+	 *     full-bleed hero reads as amateur.
+	 *
+	 *  2. AN ANCHORED SCRIM, not a flat wash. The gradient is aimed at the corner
+	 *     the text occupies. The client changes this photograph, so legibility
+	 *     cannot depend on which one they upload — it has to hold over a bright
+	 *     sunrise as well as a dark bushveld.
+	 *
+	 *  3. THE SEARCH SITS INSIDE. It used to be a shadowed card pulled up by a
+	 *     negative margin, which left it half-overlapping and fragile at every
+	 *     width between the breakpoints. It now belongs to the hero and shares
+	 *     its container, so the two can never disagree about where the edge is.
+	 */
+	private function hero() {
+		$content = array(
+			$this->heading(
+				acreage_option( 'hero_title', __( 'Land with game on it, and land that feeds cattle.', 'acreage' ) ),
+				66,
+				'#FBF8ED',
+				'h1',
+				array(
+					'typography_line_height'     => array( 'unit' => 'em', 'size' => 1.05 ),
+					'_element_custom_width'      => 'yes',
+					'_element_width'             => 'initial',
+					'_element_custom_width_size' => array( 'unit' => 'px', 'size' => 770 ),
+				)
+			),
+			$this->text(
+				acreage_option( 'hero_lede', __( 'Every farm on this site is listed by the owner of the business, walked or flown before it goes up.', 'acreage' ) ),
+				'#EAE4D2',
+				19
+			),
+		);
+
+		/*
+		 * The inventory ledger does NOT go here.
+		 *
+		 * It was added while matching a different reference. The comp puts that
+		 * information in a meta row at the TOP of the photograph — "63 live farms ·
+		 * Nine provinces · International" on the left, the location on the right —
+		 * not stacked under the lede. Keeping it here also pushed the hero from the
+		 * comp's 700px band out to 895px, because three stacked text blocks plus
+		 * padding simply do not fit in 700.
+		 *
+		 * ledger() is retained for that top meta row, which is the next piece of
+		 * this section to build.
+		 */
+
+		/*
+		 * The search is NOT part of this column.
+		 *
+		 * It was briefly placed here, and that pushed the headline to the top of
+		 * the photograph — where the comp's gradient is at 5% and the type became
+		 * unreadable over a bright sky. The comp puts the copy at the FOOT of the
+		 * image, where the gradient is heaviest, and floats the search panel over
+		 * the join as its own section. See search() below.
+		 */
+
+		return $this->section(
+			array( $this->column( $content ) ),
+			array(
+				'layout'                => 'full_width',
+				'css_classes'           => 'acreage-hero',
+				'background_background' => 'classic',
+				'background_image'      => array( 'url' => $this->image( 'hero.jpg' ), 'id' => '' ),
+				'background_size'       => 'cover',
+				'background_position'   => 'center center',
+
+				/*
+				 * The comp's gradient, exactly: bottom-to-top, heaviest at the foot
+				 * where the headline sits, easing off through the sky and lifting a
+				 * little again at the very top so the meta line stays readable.
+				 *
+				 *   linear-gradient(to top,
+				 *     rgba(24,29,16,.72) 0%, rgba(24,29,16,.34) 34%,
+				 *     rgba(24,29,16,.05) 62%, rgba(24,29,16,.22) 100%)
+				 *
+				 * Elementor exposes only two stops, so the two middle ones are
+				 * approximated and the four-stop version is applied in CSS on
+				 * .acreage-hero. The pair here is the fallback if that file is ever
+				 * dropped by a child theme.
+				 */
+				'background_overlay_background'     => 'gradient',
+				'background_overlay_color'          => 'rgba(24,29,16,0.72)',
+				'background_overlay_color_b'        => 'rgba(24,29,16,0.10)',
+				'background_overlay_gradient_type'  => 'linear',
+				'background_overlay_gradient_angle' => array( 'unit' => 'deg', 'size' => 0 ),
+
+				// Comp: clamp(340px, 50vw, 700px) on the image band.
+				'height'            => 'min-height',
+				'custom_height'     => array( 'unit' => 'px', 'size' => 700 ),
+				'custom_height_tablet' => array( 'unit' => 'px', 'size' => 520 ),
+				'custom_height_mobile' => array( 'unit' => 'px', 'size' => 420 ),
+				'min_height'        => array( 'unit' => 'px', 'size' => 700 ),
+				'min_height_tablet' => array( 'unit' => 'px', 'size' => 520 ),
+				'min_height_mobile' => array( 'unit' => 'px', 'size' => 420 ),
+
+				/*
+				 * NO content_position here.
+				 *
+				 * Elementor implements it as align-items on the widget wrap. The wrap
+				 * is a column flex (see theme.css), so align-items controls the
+				 * HORIZONTAL axis — setting it to bottom shoved the headline to the
+				 * right edge instead of lowering it. The vertical position is handled
+				 * by justify-content in CSS instead.
+				 */
+
+				/*
+				 * Bottom padding leaves room for the search panel, which is pulled
+				 * up over the photograph by a negative margin — that overlap is in
+				 * the comp and is the thing that stops the hero reading as a plain
+				 * banner with a form under it.
+				 */
+				/*
+				 * ZERO section padding, on purpose.
+				 *
+				 * Elementor applies min-height to the CONTAINER, not the section,
+				 * and then adds section padding outside it. With 44 top and 150
+				 * bottom the comp's 700px band rendered as 894. The inset now lives
+				 * on the container in theme.css, so the band is exactly 700.
+				 */
+				'padding'        => $this->padding( 0, 0, 0, 0 ),
+				'padding_tablet' => $this->padding( 32, 40, 120, 40 ),
+				'padding_mobile' => $this->padding( 26, 22, 96, 22 ),
+
+				/*
+				 * The comp has no container cap — it runs full width with clamped
+				 * gutters. On a 2560px monitor that stretched the lede to 90
+				 * characters on one line, so the content is capped here. This is a
+				 * deliberate, single deviation from the comp, made because the comp
+				 * was drawn at laptop width and never tested wider.
+				 */
+				'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+			)
+		);
+	}
+
+	private function search() {
+		return $this->section(
+			array(
+				$this->column(
+					array( $this->widget( 'acreage-farm-search', array(
+						'heading'       => __( 'Search all listings', 'acreage' ),
+						'submit_text'   => __( 'Search farms', 'acreage' ),
+						'button_bg'     => self::GREEN,
+						'bg'            => self::RAISED,
+						'field_columns' => '5',
+					) ) ),
+					100,
+					array(
+						'background_background' => 'classic',
+						'background_color'      => self::RAISED,
+						'border_border'         => 'solid',
+						'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1', 'isLinked' => true ),
+						'border_color'          => self::RULE,
+						'box_shadow_box_shadow_type' => 'yes',
+						'box_shadow_box_shadow' => array( 'horizontal' => 0, 'vertical' => 26, 'blur' => 60, 'spread' => -34, 'color' => 'rgba(28,34,18,0.7)' ),
+					)
+				),
+			),
+			array(
+				'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+				'margin'        => array( 'unit' => 'px', 'top' => '-100', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+				'margin_tablet' => array( 'unit' => 'px', 'top' => '-72', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+				'margin_mobile' => array( 'unit' => 'px', 'top' => '-56', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+				'padding'       => $this->padding( 0, 72, 56, 72 ),
+				'z_index'       => 5,
+			)
+		);
+	}
+
+	private function recently_listed( $farms_url ) {
+		return $this->section(
+			array(
+				$this->column( array(
+					$this->heading( acreage_option( 'farms_title', __( 'Recently listed', 'acreage' ) ), 40, self::DARK ),
+					$this->text( __( 'The full inventory sits on the farms for sale page.', 'acreage' ), self::MUTED, 14 ),
+					$this->widget( 'acreage-farm-grid', array(
+						'source'         => 'recent',
+						'count'          => 3,
+						'columns'        => '3',
+						'show_excerpt'   => 'yes',
+						'accent'         => self::OCHRE,
+						'link_text'      => __( 'View listing', 'acreage' ),
+						// Tabs and Load more: browse the whole inventory without leaving
+						// the homepage. Both degrade to a plain grid without JavaScript.
+						'presentation'   => 'grid',
+						'show_tabs'      => 'yes',
+						'tab_all_label'  => __( 'All farms', 'acreage' ),
+						'load_more'      => 'yes',
+						'load_more_text' => __( 'Show more farms', 'acreage' ),
+					) ),
+					$this->button( __( 'Browse all farms', 'acreage' ), $farms_url, '', self::GREEN, self::GREEN ),
+				) ),
+			),
+			array(
+				'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+				'padding'       => $this->padding( 88, 72, 88, 72 ),
+			)
+		);
+	}
+
+	/**
+	 * The featured band — a short, hand-picked strip that scrolls sideways.
+	 *
+	 * Tick "Feature this farm" on a farm to put it here. Deliberately a scroller
+	 * rather than a grid: it signals "a few chosen ones" instead of "here is
+	 * everything again", and it costs no vertical space on a phone.
+	 */
+	private function featured() {
+		return $this->section(
+			array(
+				$this->column( array(
+					$this->eyebrow( __( 'Hand-picked', 'acreage' ), self::OCHRE ),
+					$this->heading( acreage_option( 'feat_title', __( 'Featured farms', 'acreage' ) ), 40, self::DARK ),
+					$this->text( acreage_option( 'feat_sub', __( 'A short list worth a second look. Swipe for more.', 'acreage' ) ), self::MUTED, 14 ),
+					$this->widget( 'acreage-farm-grid', array(
+						'source'       => 'featured',
+						'count'        => 8,
+						'presentation' => 'carousel',
+						'show_excerpt' => '',
+						'accent'       => self::OCHRE,
+						'link_text'    => __( 'View listing', 'acreage' ),
+						'empty_text'   => __( 'No farms are featured yet — tick “Feature this farm” on any farm to fill this band.', 'acreage' ),
+					) ),
+				) ),
+			),
+			array(
+				'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+				'padding'       => $this->padding( 88, 72, 88, 72 ),
+			)
+		);
+	}
+
+	private function provinces() {
+		return $this->section(
+			array(
+				$this->column( array(
+					$this->heading( acreage_option( 'prov_title', __( 'Browse by province', 'acreage' ) ), 40, self::DARK ),
+					$this->text( acreage_option( 'prov_sub', __( 'All nine provinces, plus farms listed outside South Africa.', 'acreage' ) ), self::MUTED ),
+					$this->widget( 'acreage-province-tiles', array(
+						'taxonomy'    => 'province',
+						'hide_empty'  => '',
+						'limit'       => 12,
+						'columns'     => '4',
+						'tile_bg'     => self::PAPER,
+						'hover_bg'    => self::GREEN,
+						'hover_text'  => self::PAPER,
+					) ),
+				) ),
+			),
+			array(
+				'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+				'background_background' => 'classic',
+				'background_color'      => self::RAISED,
+				'padding'               => $this->padding( 88, 72, 88, 72 ),
+				'border_border'         => 'solid',
+				'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '1', 'left' => '0', 'isLinked' => false ),
+				'border_color'          => self::RULE,
+			)
+		);
+	}
+
+	private function categories() {
+		return $this->section(
+			array(
+				$this->column( array(
+					$this->widget( 'acreage-category-cards', array(
+						'columns' => '2',
+						'accent'  => self::OCHRE,
+						'cards'   => array(
+							array(
+								'_id'       => 'acreagegame',
+								'term'      => 'game-farms',
+								'title'     => __( 'Game farms', 'acreage' ),
+								'text'      => __( 'Reserves and hunting farms from a few hundred hectares to Big Five country. Each listing sets out wildlife and vegetation, improvements and land claim status.', 'acreage' ),
+								'link_text' => __( 'Browse game farms', 'acreage' ),
+								'image'     => array( 'url' => $this->image( 'category-game.jpg' ), 'id' => '' ),
+							),
+							array(
+								'_id'       => 'acreagecatt',
+								'term'      => 'cattle-farms',
+								'title'     => __( 'Cattle farms', 'acreage' ),
+								'text'      => __( 'Working grazing land, judged on carrying capacity, water and infrastructure. Listings cover description, improvements and land claim status.', 'acreage' ),
+								'link_text' => __( 'Browse cattle farms', 'acreage' ),
+								'image'     => array( 'url' => $this->image( 'category-cattle.jpg' ), 'id' => '' ),
+							),
+						),
+					) ),
+				) ),
+			),
+			array(
+				/*
+				 * Edge to edge, as in the comp. This band is two photographs with
+				 * coloured panels under them; gutters would leave a strip of page
+				 * background down each side and break the full-bleed effect the
+				 * design depends on. The padding lives inside each panel instead.
+				 */
+				'layout'  => 'full_width',
+				'padding' => $this->padding( 0, 0, 0, 0 ),
+				'gap'     => 'no',
+			)
+		);
+	}
+
+	/**
+	 * About + the statistics block.
+	 *
+	 * WHY THE STATS ARE ONE HTML BLOCK, NOT FOUR ELEMENTOR COLUMNS
+	 *
+	 * They used to be four nested columns at 25% each. On a 1440 screen that
+	 * works out at 116px per cell, and "Provinces and international" simply does
+	 * not fit — the labels truncated mid-word and the block read as broken.
+	 * Elementor columns also never wrap; they just get narrower.
+	 *
+	 * The comp uses a CSS grid with a 130px minimum, which wraps to two rows
+	 * rather than crushing the labels. That behaviour cannot be expressed with
+	 * columns, so the cells are emitted as markup and the grid lives in CSS.
+	 * The figures are still queried live.
+	 */
+	private function about() {
+		$stats = function_exists( 'acreage_home_stats' ) ? acreage_home_stats( acreage_home_live_count() ) : array();
+		$cells = '';
+
+		foreach ( $stats as $stat ) {
+			$cells .= sprintf(
+				'<div class="acreage-stat"><div class="acreage-stat__value">%1$s</div><div class="acreage-stat__label">%2$s</div></div>',
+				esc_html( $stat['value'] ),
+				esc_html( $stat['label'] )
+			);
+		}
+
+		$grid = $cells ? '<div class="acreage-stats">' . $cells . '</div>' : '';
+
+		/*
+		 * TWO ROWS, not two columns.
+		 *
+		 * The old layout put the copy and the figures side by side, which left the
+		 * numbers in a 283px column — four cells at 116px each, labels truncating
+		 * mid-word. Narrowing the type would have hidden the problem rather than
+		 * fixed it: four statistics simply do not belong in a third of the page.
+		 *
+		 * So the copy shares the top row with a photograph, and the figures run
+		 * the full content width beneath as a single banded row. Each label now
+		 * has roughly 300px, the claim in the heading is answered directly below
+		 * it by the evidence, and the band reads like the record line on a survey
+		 * document rather than a dashboard.
+		 */
+		$top = array(
+			'id'       => $this->id(),
+			'elType'   => 'section',
+			'isInner'  => true,
+			'settings' => array( 'gap' => 'extended' ),
+			'elements' => array(
+				$this->column( array(
+					$this->eyebrow( __( 'About', 'acreage' ) ),
+					$this->heading( acreage_option( 'about_title', __( 'One owner, one inventory, no middle layer.', 'acreage' ) ), 40, self::DARK ),
+					$this->text( acreage_option( 'about_body', __( 'Africa Game Farms lists game and cattle farms across South Africa and, occasionally, across the border. The owner loads every listing himself and photographs most of them from the air. Enquiries go straight to him, not to a call centre.', 'acreage' ) ), '#5A5F52', 16 ),
+				), 50, array( 'css_classes' => 'acreage-about__copy' ) ),
+				$this->column(
+					array(
+						$this->widget( 'image', array(
+							'image'      => array( 'url' => $this->image( 'hero-alt.jpg' ), 'id' => '' ),
+							'image_size' => 'full',
+						) ),
+					),
+					50,
+					array( 'css_classes' => 'acreage-about__media' )
+				),
+			),
+			'isInner'  => true,
+		);
+
+		return $this->section(
+			array(
+				$this->column( array(
+					$top,
+					$this->widget( 'html', array( 'html' => $grid ) ),
+				) ),
+			),
+			array(
+				'css_classes'    => 'acreage-about',
+				'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+				'padding'        => $this->padding( 104, 72, 104, 72 ),
+				'padding_tablet' => $this->padding( 72, 40, 72, 40 ),
+				'padding_mobile' => $this->padding( 48, 22, 48, 22 ),
+			)
+		);
+	}
+
+	/**
+	 * "Selling a farm?" — matched to the comp's #sell section.
+	 *
+	 * Comp values:
+	 *   section  display:flex, border-top 1px #DED5C0
+	 *   image    flex 1 1 340px, min-height clamp(200px,22vw,300px), cover
+	 *   panel    flex 1 1 460px, background #232B18, colour #E8E6DB,
+	 *            padding clamp(32px,4.5vw,80px) clamp(20px,4vw,72px),
+	 *            vertically centred
+	 *   buttons  TWO — a solid light one and a bordered ghost (#6F7F69)
+	 *
+	 * The columns are 42/58 rather than 50/50: the comp gives the copy more room
+	 * than the photograph, which is what stops the panel text wrapping short.
+	 */
+	private function sell() {
+		return $this->section(
+			array(
+				$this->column(
+					array(
+						$this->widget( 'image', array(
+							'image'      => array( 'url' => $this->image( 'karoo-grass-detail.jpg' ), 'id' => '' ),
+							'image_size' => 'full',
+						) ),
+					),
+					42,
+					array(
+						'css_classes'           => 'acreage-sell__media',
+						'background_background' => 'classic',
+						'background_color'      => '#E4DCCA',
+						'padding'               => $this->padding( 0, 0, 0, 0 ),
+					)
+				),
+				$this->column(
+					array(
+						$this->heading( acreage_option( 'sell_title', __( 'Selling a farm?', 'acreage' ) ), 40, '#E8E6DB' ),
+						$this->text(
+							acreage_option( 'sell_body', __( 'Send the province, size, carrying capacity or game count, and asking price. Photographs help, but they are not needed to start the conversation.', 'acreage' ) ),
+							'#BFC6B6',
+							16
+						),
+						$this->widget( 'button', array(
+							'text'                      => __( 'List your farm', 'acreage' ),
+							'link'                      => array( 'url' => '#footer' ),
+							'background_color'          => self::LIGHT,
+							'button_text_color'         => self::DARK,
+							'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
+							'text_padding'              => $this->padding( 16, 28, 16, 28 ),
+							'typography_typography'     => 'custom',
+							'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
+							'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
+							'typography_text_transform' => 'uppercase',
+							'_element_custom_width'     => 'yes',
+							'_element_width'            => 'initial',
+							'_inline_size'              => 'auto',
+						) ),
+						// The comp's second, quieter action. It was missing entirely.
+						$this->widget( 'button', array(
+							'text'                      => __( 'Ask a question', 'acreage' ),
+							'link'                      => array( 'url' => '#footer' ),
+							'background_color'          => 'rgba(0,0,0,0)',
+							'button_text_color'         => '#E8E6DB',
+							'border_border'             => 'solid',
+							'border_width'              => array( 'unit' => 'px', 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1', 'isLinked' => true ),
+							'border_color'              => '#6F7F69',
+							'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
+							'text_padding'              => $this->padding( 16, 28, 16, 28 ),
+							'typography_typography'     => 'custom',
+							'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
+							'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
+							'typography_text_transform' => 'uppercase',
+						) ),
+					),
+					58,
+					array(
+						'css_classes'           => 'acreage-sell__panel',
+						'background_background' => 'classic',
+						'background_color'      => self::DARK,
+						'padding'               => $this->padding( 80, 72, 80, 72 ),
+						'padding_tablet'        => $this->padding( 48, 40, 48, 40 ),
+						'padding_mobile'        => $this->padding( 36, 22, 36, 22 ),
+					)
+				),
+			),
+			array(
+				'css_classes'   => 'acreage-sell',
+				'layout'        => 'full_width',
+				'gap'           => 'no',
+				'padding'       => $this->padding( 0, 0, 0, 0 ),
+				'border_border' => 'solid',
+				'border_width'  => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+				'border_color'  => self::RULE,
+			)
+		);
+	}
+	/* ============================================================ HEADER */
+
+	/**
+	 * The site header.
+	 *
+	 * The menu uses the core WordPress nav-menu widget, which Elementor Free
+	 * exposes as wp-widget-nav_menu. Elementor's own Nav Menu widget is Pro, and
+	 * this does the same job for nothing.
+	 */
+	/**
+	 * Site header.
+	 *
+	 * One Site Nav widget rather than three columns of brand / menu / button.
+	 *
+	 * The three-column version looked right on a desktop and fell apart on a
+	 * phone: WordPress's core nav-menu widget has no responsive behaviour, so the
+	 * menu became a tall vertical list that ate the whole first screen. The Site
+	 * Nav widget owns the whole bar, which is the only way it can collapse the
+	 * menu behind a burger and keep the logo and phone button in place.
+	 */
+	public function build_header() {
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->widget( 'acreage-nav', array(
+							'menu'         => $this->primary_menu_id(),
+							'show_brand'   => 'yes',
+							'show_tagline' => 'yes',
+							'sticky'       => 'yes',
+							'bg'           => self::RAISED,
+							'link_colour'  => '#3C4A3F',
+							'breakpoint'   => array( 'unit' => 'px', 'size' => 900 ),
+						) ),
+					) ),
+				),
+				array(
+					// Tagged so the front page can lift it over the hero.
+					'css_classes'   => 'acreage-headbar',
+
+					// The widget handles its own width and padding, so the section
+					// adds none — two sets of gutters is how headers end up
+					// mysteriously off-centre.
+					// Same 1440 grid as every other section, or the wordmark sits 80px
+				// outboard of the page content on a wide monitor.
+				'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 0, 0, 0, 0 ),
+				)
+			),
+		);
+	}
+
+	private function primary_menu_id() {
+		$locations = get_nav_menu_locations();
+
+		if ( ! empty( $locations['primary'] ) ) {
+			return (int) $locations['primary'];
+		}
+
+		$menus = wp_get_nav_menus();
+
+		return $menus ? (int) $menus[0]->term_id : 0;
+	}
+
+	/* ============================================================ FOOTER */
+
+	public function build_footer() {
+		$provinces = function_exists( 'acreage_home_provinces' ) ? acreage_home_provinces( 9 ) : array();
+		$links     = array();
+
+		foreach ( $provinces as $province ) {
+			$links[] = sprintf( '<a href="%s">%s</a>', esc_url( $province['url'] ), esc_html( $province['name'] ) );
+		}
+
+		$contact = esc_html( acreage_option( 'phone', '' ) ) . '<br>' . esc_html( acreage_option( 'email', '' ) );
+
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->heading( get_bloginfo( 'name' ), 20, self::GREEN, 'div' ),
+						$this->text( $contact, '#5A5F52', 14 ),
+					), 33 ),
+					$this->column( array(
+						$this->eyebrow( __( 'Browse', 'acreage' ), self::STONE ),
+						$this->text(
+							sprintf( '<a href="%s">%s</a>', esc_url( acreage_farms_url() ), esc_html__( 'All farms for sale', 'acreage' ) ),
+							'#5A5F52',
+							14
+						),
+					), 33 ),
+					$this->column( array(
+						$this->eyebrow( __( 'Provinces', 'acreage' ), self::STONE ),
+						$this->text( implode( ' &nbsp;/&nbsp; ', $links ), '#5A5F52', 14 ),
+					), 34 ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'padding'               => $this->padding( 72, 72, 20, 72 ),
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
+				)
+			),
+			$this->section(
+				array(
+					$this->column( array(
+						$this->text(
+							esc_html__( 'All prices exclude VAT if applicable. Details subject to confirmation.', 'acreage' ),
+							self::STONE,
+							12
+						),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'padding'               => $this->padding( 0, 72, 24, 72 ),
+				)
+			),
+		);
+	}
+
+	/* =========================================================== ARCHIVE */
+
+	/** Farms for Sale: filters beside the results, as the archive mockup shows. */
+	public function build_archive() {
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->heading( __( 'Farms for sale', 'acreage' ), 40, self::DARK, 'h1' ),
+						$this->text( __( 'Filter by kind, province, size and price. Every combination is a linkable address.', 'acreage' ), self::MUTED ),
+					) ),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 64, 72, 24, 72 ),
+				)
+			),
+			$this->section(
+				array(
+					$this->column(
+						array( $this->widget( 'acreage-farm-filters', array(
+							'heading'     => __( 'Filter', 'acreage' ),
+							'show_counts' => 'yes',
+							'accent'      => self::OCHRE,
+							'submit_text' => __( 'Apply filters', 'acreage' ),
+						) ) ),
+						25,
+						array(
+							'background_background' => 'classic',
+							'background_color'      => self::RAISED,
+							'padding'               => $this->padding( 28, 26, 28, 26 ),
+						)
+					),
+					$this->column(
+						array( $this->widget( 'acreage-farm-grid', array(
+							'source'       => 'archive',
+							'columns'      => '2',
+							'show_excerpt' => 'yes',
+							'accent'       => self::OCHRE,
+						) ) ),
+						75,
+						array( 'padding' => $this->padding( 0, 0, 0, 36 ) )
+					),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 0, 72, 88, 72 ),
+				)
+			),
+		);
+	}
+
+	/* ============================================================ SINGLE */
+
+	/** One farm: gallery, the four sections, the facts panel and the enquiry form. */
+	public function build_single() {
+		return array(
+			/*
+			 * Breadcrumb bar. Sits directly under the header on the comp, on the
+			 * raised paper with a hairline beneath, so it reads as chrome rather
+			 * than as page content.
+			 */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->widget( 'acreage-farm-details', array( 'part' => 'breadcrumb' ) ),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'               => $this->padding( 14, 72, 14, 72 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '1', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
+				)
+			),
+
+			// The hero band carries the name, place, extent and price over the
+			// main photograph — full bleed, like the comp.
+			$this->section(
+				array(
+					$this->column( array(
+						$this->widget( 'acreage-farm-details', array( 'part' => 'hero' ) ),
+					) ),
+				),
+				array(
+					'layout'  => 'full_width',
+					'padding' => $this->padding( 0, 0, 0, 0 ),
+				)
+			),
+
+			$this->section(
+				array(
+					$this->column( array(
+						$this->widget( 'acreage-farm-details', array( 'part' => 'gallery', 'columns' => '3' ) ),
+					) ),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 40, 72, 40, 72 ),
+				)
+			),
+			$this->section(
+				array(
+					$this->column(
+						array(
+							$this->widget( 'acreage-farm-details', array( 'part' => 'sections', 'show_headings' => 'yes' ) ),
+							$this->heading( __( 'Species on this farm', 'acreage' ), 24, self::DARK ),
+							$this->widget( 'acreage-farm-details', array( 'part' => 'species' ) ),
+							$this->widget( 'acreage-farm-details', array( 'part' => 'video' ) ),
+						),
+						62,
+						array( 'css_classes' => 'acreage-single__main' )
+					),
+					$this->column(
+						array(
+							$this->widget( 'acreage-farm-details', array( 'part' => 'price' ) ),
+							$this->widget( 'acreage-farm-details', array( 'part' => 'facts' ) ),
+							$this->widget( 'acreage-enquiry-form', array(
+								'heading'   => __( 'Ask about this farm', 'acreage' ),
+								'button_bg' => self::GREEN,
+							) ),
+						),
+						38,
+						array(
+							'css_classes'           => 'acreage-single__aside',
+							'background_background' => 'classic',
+							'background_color'      => self::RAISED,
+							'padding'               => $this->padding( 28, 28, 28, 28 ),
+						)
+					),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 0, 72, 88, 72 ),
+				)
+			),
+
+			/*
+			 * Similar farms.
+			 *
+			 * A buyer who reaches the foot of a listing without enquiring is about
+			 * to leave. Three comparable farms is the cheapest thing that keeps
+			 * them on the site, and it is in the comp for that reason.
+			 */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->heading( __( 'Similar farms', 'acreage' ), 34, self::DARK ),
+						$this->widget( 'acreage-farm-details', array( 'part' => 'similar' ) ),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'               => $this->padding( 72, 72, 88, 72 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
+				)
+			),
+		);
+	}
+
+	/* ======================================================== FLAT PAGES */
+
+	/**
+	 * The About page.
+	 *
+	 * Was a single band with an empty body — about_body defaults to an empty
+	 * string, so the page shipped with a heading and nothing under it.
+	 *
+	 * Built from the facts in the brief: trading since 2008, the founder in
+	 * property since 2004, farms across South Africa plus Namibia and Botswana,
+	 * every listing loaded and mostly photographed by the owner himself.
+	 *
+	 * The structure answers the three questions a seller actually has before
+	 * picking an agent — who are you, how do you work, and where do you sell —
+	 * and closes on the contact. The copy is a starting point and should be
+	 * replaced with the client's own words before launch.
+	 */
+	public function build_about() {
+		$phone = acreage_option( 'phone', '' );
+
+		return array(
+
+			/* ------------------------------------------------- 1. the opening */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'About', 'acreage' ) ),
+						$this->heading(
+							acreage_option( 'about_title', __( 'One owner, one inventory, no middle layer.', 'acreage' ) ),
+							44,
+							self::DARK,
+							'h1'
+						),
+						$this->text(
+							acreage_option(
+								'about_body',
+								$this->pp( __( 'Africa Game Farms has been selling game and cattle farms since 2008. The founder has been in property since 2004, and every farm on this site is listed by him — walked or flown before it goes up, and photographed from the air wherever the terrain allows.', 'acreage' ) ) .
+								$this->pp( __( 'There is no branch network and no call centre. When you send an enquiry it reaches the person who visited the farm, which is why answers tend to arrive the same day and tend to be specific.', 'acreage' ) )
+							),
+							'#5A5F52',
+							17
+						),
+					), 55, array( 'css_classes' => 'acreage-about__copy' ) ),
+					$this->column( array(
+						$this->widget( 'image', array(
+							'image'      => array( 'url' => $this->image( 'farm-02.jpg' ), 'id' => '' ),
+							'image_size' => 'full',
+						) ),
+					), 45, array( 'css_classes' => 'acreage-about__media' ) ),
+				),
+				array(
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 88, 72, 72, 72 ),
+					'padding_mobile' => $this->padding( 48, 22, 40, 22 ),
+				)
+			),
+
+			/* ---------------------------------------------- 2. how we work */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'How we work', 'acreage' ) ),
+						$this->heading( __( 'Three things that do not change.', 'acreage' ), 34, self::DARK ),
+						$this->widget( 'html', array(
+							'html' =>
+								'<div class="acreage-pillars">' .
+								$this->pillar(
+									__( 'The owner lists it', 'acreage' ),
+									__( 'Every farm is loaded by the person who visited it. Nothing is copied off another agent’s sheet, and nothing goes up that has not been seen.', 'acreage' )
+								) .
+								$this->pillar(
+									__( 'Photographed from the air', 'acreage' ),
+									__( 'Extent and layout are almost impossible to judge from the ground. Most listings carry drone photography so you can read the camps, the water and the access before you drive out.', 'acreage' )
+								) .
+								$this->pillar(
+									__( 'Enquiries go straight to him', 'acreage' ),
+									__( 'No call centre, no lead routing. The reply comes from the person who knows the carrying capacity and the land claim position.', 'acreage' )
+								) .
+								'</div>',
+						) ),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'               => $this->padding( 80, 72, 80, 72 ),
+					'padding_mobile'        => $this->padding( 48, 22, 48, 22 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '1', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
+				)
+			),
+
+			/* -------------------------------------------- 3. where we sell */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Where we sell', 'acreage' ) ),
+						$this->heading( __( 'Nine provinces, and across the border.', 'acreage' ), 34, self::DARK ),
+						$this->text(
+							__( 'Most of the inventory sits in Limpopo and the Northern Cape, but farms come up everywhere from the Waterberg to the Karoo. Listings outside South Africa — Namibia and Botswana — appear under International.', 'acreage' ),
+							'#5A5F52',
+							16
+						),
+						$this->widget( 'acreage-province-tiles', array(
+							'taxonomy'   => 'province',
+							'hide_empty' => '',
+							'limit'      => 12,
+							'columns'    => '4',
+							'tile_bg'    => self::PAPER,
+							'hover_bg'   => self::GREEN,
+							'hover_text' => self::PAPER,
+						) ),
+					) ),
+				),
+				array(
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 80, 72, 80, 72 ),
+					'padding_mobile' => $this->padding( 48, 22, 48, 22 ),
+				)
+			),
+
+			/* ------------------------------------------------- 4. the record */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'The record', 'acreage' ) ),
+						$this->widget( 'html', array( 'html' => $this->stats_record() ) ),
+					) ),
+				),
+				array(
+					'css_classes'    => 'acreage-about',
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 0, 72, 88, 72 ),
+					'padding_mobile' => $this->padding( 0, 22, 48, 22 ),
+				)
+			),
+
+			/* ----------------------------------------------------- 5. contact */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->heading( __( 'Talk to the owner', 'acreage' ), 34, '#E8E6DB' ),
+						$this->text(
+							$phone
+								/* translators: %s: telephone number. */
+								? sprintf( __( 'Call %s, or send a message and it will reach him directly.', 'acreage' ), esc_html( $phone ) )
+								: __( 'Send a message and it will reach him directly.', 'acreage' ),
+							'#BFC6B6',
+							16
+						),
+						$this->button( __( 'Contact us', 'acreage' ), home_url( '/contact-us/' ), self::LIGHT, self::DARK ),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'               => $this->padding( 72, 72, 72, 72 ),
+					'padding_mobile'        => $this->padding( 48, 22, 48, 22 ),
+					'background_background' => 'classic',
+					'background_color'      => self::DARK,
+				)
+			),
+		);
+	}
+
+	/** One "how we work" pillar. */
+	private function pillar( $title, $body ) {
+		return sprintf(
+			'<div class="acreage-pillar"><h3 class="acreage-pillar__title">%1$s</h3><p class="acreage-pillar__body">%2$s</p></div>',
+			esc_html( $title ),
+			esc_html( $body )
+		);
+	}
+
+	/**
+	 * The figures, as a read record rather than a scan band.
+	 *
+	 * The homepage already carries these four numbers as a horizontal strip. On
+	 * a page somebody is actually reading, repeating that strip says nothing new
+	 * — so here each figure becomes a row with a line of context beside it. The
+	 * gloss is the thing the homepage band cannot carry, and it is what turns a
+	 * number into a claim: "17" means little, "trading since 2008, in property
+	 * since 2004" is the reason to believe it.
+	 *
+	 * Ordered by weight of evidence, not by inventory: how long, how many sold,
+	 * how wide the reach, what is on the books today.
+	 *
+	 * @return string
+	 */
+	private function stats_record() {
+		$live = function_exists( 'acreage_home_live_count' ) ? acreage_home_live_count() : 0;
+
+		$rows = array(
+			array(
+				'value' => acreage_option( 'stat3_value', '17' ),
+				'label' => __( 'Years trading', 'acreage' ),
+				'gloss' => __( 'Selling game and cattle farms since 2008, with the founder in property since 2004.', 'acreage' ),
+			),
+			array(
+				'value' => acreage_option( 'stat4_value', '400+' ),
+				'label' => __( 'Farms sold to date', 'acreage' ),
+				'gloss' => __( 'From weekend smallholdings to Big Five reserves, most of them sold to buyers who had never met us before the first enquiry.', 'acreage' ),
+			),
+			array(
+				'value' => acreage_option( 'stat2_value', '9+1' ),
+				'label' => __( 'Provinces and international', 'acreage' ),
+				'gloss' => __( 'All nine South African provinces, plus listings in Namibia and Botswana.', 'acreage' ),
+			),
+			array(
+				'value' => number_format_i18n( $live ),
+				'label' => __( 'On the books today', 'acreage' ),
+				'gloss' => __( 'Live inventory, refreshed as farms come on and go under offer.', 'acreage' ),
+			),
+		);
+
+		$html = '';
+
+		foreach ( $rows as $row ) {
+			$html .= sprintf(
+				'<div class="acreage-record">
+					<div class="acreage-record__figure">%1$s</div>
+					<div class="acreage-record__text">
+						<div class="acreage-record__label">%2$s</div>
+						<p class="acreage-record__gloss">%3$s</p>
+					</div>
+				</div>',
+				esc_html( $row['value'] ),
+				esc_html( $row['label'] ),
+				esc_html( $row['gloss'] )
+			);
+		}
+
+		return '<div class="acreage-records">' . $html . '</div>';
+	}
+
+	public function build_contact() {
+		$phone = acreage_option( 'phone', '' );
+		$email = acreage_option( 'email', '' );
+		$fax   = acreage_option( 'fax', '' );
+
+		$lines = array();
+
+		if ( $phone ) {
+			/* translators: %s: telephone number. */
+			$lines[] = sprintf( esc_html__( 'Telephone %s', 'acreage' ), esc_html( $phone ) );
+		}
+		if ( $fax ) {
+			/* translators: %s: fax number. */
+			$lines[] = sprintf( esc_html__( 'Fax %s', 'acreage' ), esc_html( $fax ) );
+		}
+		if ( $email ) {
+			$lines[] = esc_html( $email );
+		}
+
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Contact', 'acreage' ) ),
+						$this->heading( acreage_option( 'contact_title', __( 'Talk to the owner, not a call centre.', 'acreage' ) ), 40, self::DARK, 'h1' ),
+						$this->text( implode( '<br>', $lines ), '#5A5F52', 16 ),
+					), 40 ),
+					$this->column( array(
+						$this->widget( 'acreage-enquiry-form', array(
+							'heading'   => __( 'Send a message', 'acreage' ),
+							'button_bg' => self::GREEN,
+						) ),
+					), 60 ),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 88, 72, 88, 72 ),
+				)
+			),
+		);
+	}
+
+	/**
+	 * Articles & News.
+	 *
+	 * The posts themselves are listed by WordPress once this page is set as the
+	 * Posts page, so this builds only the masthead above that list.
+	 */
+	public function build_articles() {
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Articles & news', 'acreage' ) ),
+						$this->heading( acreage_option( 'articles_title', __( 'What to know before you buy.', 'acreage' ) ), 40, self::DARK, 'h1' ),
+						$this->text(
+							acreage_option( 'articles_sub', __( 'Notes on carrying capacity, land claims, water rights and the questions worth asking before an offer.', 'acreage' ) ),
+							'#5A5F52',
+							16
+						),
+					) ),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'       => $this->padding( 80, 72, 40, 72 ),
+				)
+			),
+		);
+	}
+
+	/**
+	 * Agency Disclaimer.
+	 *
+	 * Present on the client's current site and legally load-bearing, so it is
+	 * built rather than left for someone to remember. The wording is a starting
+	 * point and should be checked by whoever signs it off.
+	 */
+	public function build_disclaimer() {
+		return array(
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Legal', 'acreage' ) ),
+						$this->heading( __( 'Agency disclaimer', 'acreage' ), 36, self::DARK, 'h1' ),
+						$this->text(
+							$this->pp( __( 'Every particular on this website — extent, price, carrying capacity, improvements, species and land claim status — is supplied by the seller and believed correct at the time of listing. It is published in good faith and does not form part of any offer or contract.', 'acreage' ) ) .
+							$this->pp( __( 'Prospective purchasers must satisfy themselves as to the accuracy of any particular by their own inspection and enquiry. Neither the agency nor the seller accepts liability for any error, omission or subsequent change.', 'acreage' ) ) .
+							$this->pp( __( 'Prices exclude VAT unless expressly stated otherwise. Availability is subject to prior sale.', 'acreage' ) ),
+							'#5A5F52',
+							16
+						),
+					) ),
+				),
+				array(
+					'content_width' => array( 'unit' => 'px', 'size' => 980 ),
+					'padding'       => $this->padding( 80, 72, 96, 72 ),
+				)
+			),
+		);
+	}
+
+	/** Wrap a sentence in a paragraph, for multi-paragraph text widgets. */
+	private function pp( $text ) {
+		return '<p>' . $text . '</p>';
+	}
+}

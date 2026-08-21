@@ -1,0 +1,762 @@
+/* Acreage — base stylesheet.
+
+   THE SINGLE SOURCE OF DESIGN TRUTH.
+
+   Every colour, font and dimension the theme uses is declared once in the :root
+   block below and referenced by variable everywhere else. Change a value here
+   and it changes site-wide; that is the whole reason the variables exist. Do not
+   reintroduce raw hex codes further down the file.
+
+   PHASE 3: these tokens become the mirror of Elementor Global Colours and Global
+   Fonts, so the customer edits them in the builder rather than in CSS. */
+
+:root{
+  --acreage-paper:#F5F0E4;
+  --acreage-panel:#EFE9DA;
+  --acreage-panel-deep:#DED5C0;
+  --acreage-ink:#1F2A21;
+  --acreage-ink-soft:#3C4A3F;
+  --acreage-stone:#8A8172;
+  --acreage-moss:#354027;
+  --acreage-moss-deep:#232B18;
+  --acreage-moss-light:#6E7566;
+  --acreage-sienna:#9C6423;
+  --acreage-rule:#DED5C0;
+  --acreage-wrap:1440px;
+  --acreage-serif:Georgia,"Times New Roman",serif;
+  --acreage-sans:"Helvetica Neue",Helvetica,"Segoe UI",Arial,sans-serif;
+  --acreage-max:1440px;
+  --acreage-gutter:clamp(20px,4vw,72px);
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+body{
+  margin:0;
+  background:var(--acreage-paper);
+  color:var(--acreage-ink);
+  font-family:var(--acreage-sans);
+  font-size:17px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;height:auto;display:block;}
+a{color:var(--acreage-moss);text-underline-offset:.18em;}
+a:hover{color:var(--acreage-sienna);}
+
+.acreage-wrap{width:100%;max-width:var(--acreage-wrap);margin:0 auto;padding:0 24px;}
+
+.screen-reader-text{
+  position:absolute!important;width:1px;height:1px;overflow:hidden;
+  clip:rect(1px,1px,1px,1px);white-space:nowrap;
+}
+.acreage-skip{
+  position:absolute;left:-9999px;top:0;background:var(--acreage-moss);color:#fff;
+  padding:12px 18px;z-index:999;
+}
+.acreage-skip:focus{left:12px;top:12px;}
+
+/* ------------------------------------------------------------------- pages */
+.acreage-main{min-height:60vh;}
+.acreage-page{padding:56px 24px 72px;}
+.acreage-page--narrow{max-width:820px;}
+.acreage-page__head{border-bottom:1px solid var(--acreage-rule);padding-bottom:18px;margin-bottom:34px;}
+.acreage-page__title{
+  font-family:var(--acreage-serif);font-weight:400;font-size:clamp(1.9rem,4vw,2.85rem);
+  color:var(--acreage-moss);margin:0;line-height:1.15;text-wrap:balance;
+}
+.acreage-meta{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--acreage-stone);font-weight:600;}
+
+.acreage-prose h2{font-family:var(--acreage-serif);font-weight:400;color:var(--acreage-moss);font-size:1.7rem;margin:2em 0 .5em;}
+.acreage-prose h3{font-size:1.12rem;margin:1.8em 0 .4em;}
+.acreage-prose blockquote{
+  border-left:3px solid var(--acreage-moss-light);background:var(--acreage-panel);
+  margin:1.6em 0;padding:16px 22px;
+}
+.acreage-article__media{margin:0 0 32px;}
+.acreage-article__media img{width:100%;}
+
+/* ------------------------------------------------------------------- cards */
+.acreage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:34px;}
+.acreage-card{background:#fff;border:1px solid var(--acreage-rule);transition:transform .2s ease,box-shadow .2s ease;}
+.acreage-card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(31,42,33,.10);}
+.acreage-card__link{text-decoration:none;color:inherit;display:block;height:100%;}
+.acreage-card__media{aspect-ratio:10/7;overflow:hidden;background:var(--acreage-panel-deep);}
+.acreage-card__media img{width:100%;height:100%;object-fit:cover;}
+.acreage-card__placeholder{display:block;width:100%;height:100%;background:var(--acreage-panel-deep);}
+.acreage-card__body{padding:22px 24px 26px;}
+.acreage-card__title{font-family:var(--acreage-serif);font-weight:400;font-size:1.28rem;color:var(--acreage-moss);margin:0 0 8px;line-height:1.25;}
+.acreage-card__excerpt{margin:0 0 14px;color:var(--acreage-ink-soft);font-size:.95rem;}
+.acreage-card__more{
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--acreage-sienna);
+}
+
+/* --------------------------------------------------------- buttons + forms */
+.acreage-btn{
+  display:inline-block;background:var(--acreage-moss);color:#F4F2EA;text-decoration:none;
+  padding:12px 26px;border:0;font-size:.82rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;cursor:pointer;transition:background .18s;
+}
+.acreage-btn:hover{background:var(--acreage-sienna);color:#fff;}
+.acreage-search{display:flex;gap:10px;margin:22px 0;flex-wrap:wrap;}
+.acreage-search input[type=search]{
+  flex:1 1 240px;padding:12px 14px;border:1px solid var(--acreage-rule);
+  background:#fff;font:inherit;font-size:.95rem;
+}
+.acreage-search input[type=search]:focus{outline:2px solid var(--acreage-moss-light);outline-offset:1px;}
+
+/* -------------------------------------------------------------- pagination */
+.acreage-pagination{margin-top:48px;border-top:1px solid var(--acreage-rule);padding-top:22px;}
+.acreage-pagination .page-numbers{
+  display:inline-block;padding:8px 14px;text-decoration:none;color:var(--acreage-ink-soft);font-weight:600;
+}
+.acreage-pagination .current{background:var(--acreage-moss);color:#F4F2EA;}
+
+/* ------------------------------------------------- block / editor content */
+/* Content written in the block editor or pasted as HTML lands inside
+   .acreage-prose. Without these rules headings render as bare browser defaults,
+   which reads as "the stylesheet did not load". */
+
+.acreage-prose > *:first-child{margin-top:0;}
+.acreage-prose > *:last-child{margin-bottom:0;}
+.acreage-prose h1{
+  font-family:var(--acreage-serif);font-weight:400;color:var(--acreage-moss);
+  font-size:clamp(1.9rem,4vw,2.6rem);line-height:1.15;margin:0 0 .6em;text-wrap:balance;
+}
+.acreage-prose h4,.acreage-prose h5,.acreage-prose h6{margin:1.6em 0 .4em;font-size:1rem;}
+.acreage-prose p{margin:0 0 1.15em;}
+.acreage-prose ul,.acreage-prose ol{margin:0 0 1.15em;padding-left:1.4em;}
+.acreage-prose li{margin-bottom:.4em;}
+.acreage-prose figure{margin:2em 0;}
+.acreage-prose figure img{width:100%;}
+.acreage-prose figcaption{
+  font-size:.82rem;color:var(--acreage-stone);margin-top:.6em;text-align:center;
+}
+.acreage-prose hr{border:0;border-top:1px solid var(--acreage-rule);margin:2.4em 0;}
+.acreage-prose table{width:100%;border-collapse:collapse;margin:0 0 1.4em;}
+.acreage-prose th,.acreage-prose td{
+  text-align:left;padding:10px 12px 10px 0;border-bottom:1px solid var(--acreage-rule);
+}
+.acreage-prose th{
+  font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:var(--acreage-stone);
+}
+
+/* Wide and full-bleed blocks inside the narrow column. */
+.acreage-prose .alignwide{
+  width:min(1180px,92vw);margin-left:50%;transform:translateX(-50%);max-width:none;
+}
+.acreage-prose .alignfull{
+  width:100vw;margin-left:50%;transform:translateX(-50%);max-width:none;
+}
+.acreage-prose .alignleft{float:left;margin:.3em 1.6em 1em 0;max-width:50%;}
+.acreage-prose .alignright{float:right;margin:.3em 0 1em 1.6em;max-width:50%;}
+.acreage-prose .aligncenter{margin-left:auto;margin-right:auto;}
+.acreage-prose::after{content:"";display:table;clear:both;}
+
+/* Colour + font-size classes generated from theme.json. */
+.has-paper-background-color{background-color:var(--acreage-paper);}
+.has-panel-background-color{background-color:var(--acreage-panel);}
+.has-moss-background-color{background-color:var(--acreage-moss);}
+.has-moss-color{color:var(--acreage-moss);}
+.has-sienna-color{color:var(--acreage-sienna);}
+.has-ink-color{color:var(--acreage-ink);}
+.has-stone-color{color:var(--acreage-stone);}
+
+/* ----------------------------------------------------------------- widgets */
+/* Used by both registered widget areas: the blog sidebar and the footer. */
+.acreage-widget{margin:0 0 34px;}
+.acreage-widget__title{
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--acreage-stone);margin:0 0 10px;
+}
+.acreage-widget ul{list-style:none;margin:0;padding:0;}
+.acreage-widget li{padding:5px 0;border-bottom:1px solid var(--acreage-rule);}
+.acreage-widget a{text-decoration:none;}
+.acreage-widget a:hover{text-decoration:underline;}
+
+.acreage-sidebar{align-self:start;}
+
+/* -------------------------------------------------------------- comments */
+.acreage-comments{margin:64px auto 0;max-width:820px;}
+.acreage-comments__title{
+  font-family:var(--acreage-serif);font-weight:400;color:var(--acreage-moss);
+  font-size:1.5rem;margin:0 0 24px;
+}
+.acreage-comments__list{list-style:none;margin:0 0 40px;padding:0;}
+.acreage-comments__list .children{list-style:none;padding-left:28px;}
+.acreage-comments__list .comment-body{
+  border-bottom:1px solid var(--acreage-rule);padding:20px 0;
+}
+.acreage-comments__list .comment-author img{border-radius:50%;margin-right:10px;vertical-align:middle;}
+.acreage-comments__closed{color:var(--acreage-stone);}
+.acreage-comments__form label{
+  display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;
+  font-weight:600;color:var(--acreage-stone);margin-bottom:6px;
+}
+.acreage-comments__form input[type=text],
+.acreage-comments__form input[type=email],
+.acreage-comments__form input[type=url],
+.acreage-comments__form textarea{
+  width:100%;padding:11px 13px;border:1px solid var(--acreage-rule);
+  background:#fff;font:inherit;font-size:.95rem;
+}
+.acreage-comments__form .submit{
+  background:var(--acreage-moss);color:#F4F2EA;border:0;cursor:pointer;
+  padding:12px 26px;font-size:.82rem;font-weight:700;letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.acreage-comments__form .submit:hover{background:var(--acreage-sienna);}
+.acreage-comments__form .comment-form-cookies-consent{
+  display:flex;align-items:center;gap:10px;
+}
+.acreage-comments__form .comment-form-cookies-consent label{margin:0;}
+
+/* --------------------------------------------------------- focus visibility */
+/* One rule, everywhere. Removing an outline without replacing it strands every
+   keyboard user; :focus-visible shows it only when it is actually needed, so
+   mouse users never see a ring they did not ask for. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible{
+  outline:2px solid var(--acreage-moss-light);
+  outline-offset:2px;
+}
+
+/* ------------------------------------------------------- content + sidebar */
+/* One column by default. The sidebar column only appears when the customer has
+   actually put widgets in it, so a site with no widgets is not paying for an
+   empty grid track. */
+.acreage-page__main{min-width:0;}
+.acreage-page--has-sidebar{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:48px;
+}
+@media (min-width:1000px){
+  .acreage-page--has-sidebar{grid-template-columns:minmax(0,1fr) 300px;}
+}
+.acreage-none{max-width:620px;}
+.acreage-page__intro{color:var(--acreage-ink-soft);margin-top:12px;max-width:60ch;}
+.acreage-entry__footer{
+  margin-top:32px;padding-top:18px;border-top:1px solid var(--acreage-rule);
+  font-size:.9rem;color:var(--acreage-ink-soft);display:flex;gap:20px;flex-wrap:wrap;
+}
+.acreage-article__media figcaption{
+  font-size:.85rem;color:var(--acreage-stone);margin-top:8px;
+}
+
+/* ------------------------------------------------- WordPress core classes */
+/* WordPress generates these class names itself — from the media library, the
+   comment loop and the sticky-post feature — so a theme that does not style
+   them has visible gaps a customer cannot fix from the editor. */
+.sticky{position:relative;}
+.sticky .acreage-card__title::before{
+  content:"★";color:var(--acreage-sienna);margin-right:.4em;font-size:.8em;
+}
+.bypostauthor > .comment-body{border-left:3px solid var(--acreage-moss-light);padding-left:16px;}
+
+.wp-caption{max-width:100%;margin-bottom:1.6em;}
+.wp-caption img{display:block;width:100%;height:auto;}
+.wp-caption-text,
+.gallery-caption{
+  font-size:.85rem;color:var(--acreage-stone);margin-top:8px;text-align:center;
+}
+
+.alignleft{float:left;margin:.4em 1.6em 1.2em 0;}
+.alignright{float:right;margin:.4em 0 1.2em 1.6em;}
+.aligncenter{display:block;margin-left:auto;margin-right:auto;}
+.alignwide{max-width:var(--acreage-wrap);}
+.alignfull{max-width:none;width:100%;}
+
+/* Core's own accessibility helper — WordPress markup expects it to exist. */
+.screen-reader-text:focus{
+  clip:auto!important;height:auto;width:auto;display:block;
+  padding:14px 20px;background:var(--acreage-paper);color:var(--acreage-moss);
+  z-index:100000;left:12px;top:12px;text-decoration:none;
+}
+
+
+/* ============================================================== hero ledger */
+/* The inventory stated in the trade's own units. Deliberately quiet: the
+   photograph is the loud element in the hero, and one loud element is the
+   limit. Tabular figures so the numbers do not shuffle as the inventory
+   changes, and a hairline separator instead of a bullet — closer to how a land
+   survey sets a run of measurements. */
+.acreage-ledger{
+  display:flex;flex-wrap:wrap;align-items:center;
+  gap:0 14px;
+  font-size:11px;
+  letter-spacing:.19em;
+  text-transform:uppercase;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+}
+.acreage-ledger__sep{
+  display:inline-block;
+  width:22px;height:1px;
+  background:currentColor;
+  opacity:.42;
+}
+@media (max-width:600px){
+  .acreage-ledger{gap:0 10px;font-size:10px;letter-spacing:.15em;}
+  .acreage-ledger__sep{width:14px;}
+}
+
+/* ------------------------------------------------------------- hero search */
+/* The search bar belongs to the hero now. It is capped at a readable measure
+   rather than stretching the full 1400px — a five-field row spread across a
+   wide monitor reads as a toolbar, not an invitation. */
+.acreage-home .acreage-w-search{max-width:none;}
+@media (max-width:900px){
+  .acreage-home .acreage-w-search{margin-top:26px;}
+}
+
+/* Hero type: cap the measure so the headline breaks into deliberate lines
+   instead of running as one thin band across a large monitor. */
+.acreage-home .elementor-widget-heading h1{
+  max-width:19ch;      /* comp value */
+  text-wrap:pretty;
+}
+@media (max-width:900px){
+  .acreage-home .elementor-widget-heading h1{max-width:20ch;}
+}
+
+/* ==================================================== hero: capped content */
+/* THE BUG THIS FIXES
+   The hero is a full-width section so the photograph runs edge to edge. But
+   Elementor IGNORES the "content width" setting on full-width sections — it
+   only honours it on boxed ones — so the setting of 1400px did nothing and the
+   text ran the entire monitor. At 2560px the lede was a single 2381px line of
+   90 characters, which is roughly three times a readable measure.
+
+   Full-bleed background with capped content is the pattern; it just has to be
+   done here rather than through the control that looks like it should do it. */
+.acreage-hero > .elementor-container{
+  max-width:var(--acreage-max);   /* 1400 */
+  margin-inline:auto;
+  width:100%;
+}
+
+/* Measure caps per element. The headline is already capped at 15ch; the lede
+   and ledger need their own, or they stretch to the full 1400. */
+.acreage-hero .elementor-widget-text-editor p{max-width:52ch;}
+.acreage-hero .acreage-ledger{max-width:62ch;}
+
+@media (prefers-reduced-motion:no-preference){
+  .acreage-headbar{transition:background 240ms ease, box-shadow 240ms ease;}
+}
+
+/* Specificity note: Elementor emits per-element CSS as
+   ".elementor-NN .elementor-element.elementor-element-XX" — 0-3-0 — and that
+   file loads AFTER this one. A plain ".acreage-home .acreage-headbar.is-stuck"
+   ties on specificity and loses on order, which is why the bar kept its
+   position but not its background. The class is repeated to take the selector
+   to 0-4-0 rather than reaching for !important, so a child theme can still
+   override it normally. */
+
+/* ==================================================== header — the comp spec */
+/* Solid, sticky, sitting ABOVE the hero rather than over it.
+   From the comp:
+     background #FCFAF2, 1px bottom rule #DED5C0,
+     padding 18px clamp(20px,4vw,72px), sticky top, z-index 20.
+
+   A transparent bar laid over the photograph was tried while matching another
+   reference. It looks striking on a wide monitor and it is not what was signed
+   off: the comp keeps the header quiet so the photograph is the only loud thing
+   on the page. */
+.acreage-headbar .acreage-nav.acreage-nav{
+  background:#FCFAF2;
+  border-bottom:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-nav__bar{
+  padding:18px clamp(20px,4vw,72px);
+  max-width:none;
+}
+.acreage-nav__name{
+  font-family:var(--acreage-serif);
+  font-size:22px;
+  letter-spacing:.01em;
+  color:var(--acreage-moss);
+}
+.acreage-nav__tag{
+  font-size:9px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--acreage-stone);margin-top:6px;
+}
+.acreage-nav__list a{font-size:13px;letter-spacing:.06em;color:#3C4A3F;}
+.acreage-nav__cta{
+  padding:10px 17px;font-size:12px;letter-spacing:.1em;font-weight:400;
+  background:var(--acreage-moss);color:var(--acreage-paper);border:0;
+}
+.acreage-nav__cta:hover{background:#232B18;color:var(--acreage-paper);}
+
+/* ================================================== hero — the comp gradient */
+/* Elementor's overlay control gives two colour stops. The comp uses four, and
+   the middle pair is what keeps the sky open while still seating the headline.
+   Applied here so the hero matches the signed-off design rather than an
+   approximation of it. */
+/* The comp's gradient shape, restopped for THIS photograph.
+
+   The comp's exact values (.72 / .34 / .05 / .22) were tuned to a hero whose
+   lower half is dark treeline. Ours has open sky at the height the lede and the
+   ledger occupy, so the .05 stop left them unreadable. Same direction, same
+   character, stops moved to where this image is bright — and kept honest enough
+   that a client swapping the photograph still gets legible type. */
+.acreage-hero > .elementor-background-overlay{
+  background-image:linear-gradient(to top,
+    rgba(24,29,16,.84) 0%,
+    rgba(24,29,16,.74) 38%,
+    rgba(24,29,16,.56) 70%,
+    rgba(24,29,16,.40) 100%) !important;
+}
+
+/* Content capped — the one deliberate deviation from the comp, so the lede does
+   not run to 90 characters on a wide monitor. */
+.acreage-hero > .elementor-container{
+  max-width:var(--acreage-max);
+  margin-inline:auto;
+  width:100%;
+}
+.acreage-hero .elementor-widget-text-editor p{max-width:46ch;}
+.acreage-hero h1{max-width:19ch;}
+
+
+
+/* Content sits above the overlay layer. */
+.acreage-hero > .elementor-container{position:relative;z-index:2;}
+
+/* The hero's inset lives on the container, not the section — see the note in
+   class-acreage-elementor-template.php::hero(). Section padding would be added
+   outside Elementor's min-height and blow the comp's 700px band out to 894. */
+/* Vertical inset only. The container is already capped at 1440 and centred, so
+   horizontal padding here would indent the hero 72px further than every other
+   section — five different left edges was exactly the wide-screen symptom. */
+.acreage-hero > .elementor-container{
+  padding:44px 0 150px;
+  box-sizing:border-box;
+}
+@media (max-width:1024px){
+  .acreage-hero > .elementor-container{padding:32px 0 110px;}
+}
+@media (max-width:767px){
+  .acreage-hero > .elementor-container{padding:26px 0 84px;}
+}
+
+/* ====================================== hero — content sits low on the image */
+/* Elementor's "content position: bottom" writes align-items on the column, and
+   with a single full-width column that does nothing. The headline was ending up
+   25% down the photograph instead of the comp's ~55%, which is why the hero read
+   as top-heavy and the sky looked empty above it.
+   Pushing the widget wrap itself to the bottom is what actually moves it. */
+.acreage-hero > .elementor-container > .elementor-column > .elementor-widget-wrap{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;   /* main axis: push the block DOWN */
+  align-items:flex-start;     /* cross axis: keep it LEFT */
+  height:100%;
+}
+.acreage-hero > .elementor-container{align-items:stretch;}
+
+/* Elementor's content_position writes align-items on the wrap at a specificity
+   our plain selector ties with. Repeating the class takes this to 0-4-0 so the
+   headline stays left-aligned whatever the section control says. */
+.acreage-hero .elementor-widget-wrap.elementor-widget-wrap{
+  align-items:flex-start;
+  justify-content:flex-end;
+}
+
+/* justify-content can only push content down if the wrap actually fills the
+   column. Without this the wrap is only as tall as its text, so "flex-end"
+   has no space to work in and the headline stays at the top of the photograph. */
+.acreage-hero > .elementor-container > .elementor-column{display:flex;}
+.acreage-hero .elementor-widget-wrap.elementor-widget-wrap{flex:1 1 auto;}
+
+/* Elementor writes align-items:center on
+   ".elementor-section.elementor-section-height-default > .elementor-container",
+   which vertically centres the column and leaves justify-content nothing to do.
+   Matching that specificity is the only way to stretch it. */
+.acreage-hero.elementor-section.elementor-section-height-default > .elementor-container{
+  align-items:stretch;
+}
+
+/* ============================ header: full-bleed bar, capped content */
+/* Capping the section container also capped the bar's BACKGROUND, so on a wide
+   monitor the header became a floating white panel with page colour either
+   side. The colour belongs to the section, which is full width; only the
+   wordmark-to-button row is capped, on the same 1440 grid as everything else. */
+.acreage-headbar{
+  background:#FCFAF2;
+  border-bottom:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-headbar .acreage-nav.acreage-nav{
+  background:transparent;
+  border-bottom:0;
+}
+.acreage-headbar > .elementor-container{max-width:none;}
+.acreage-nav__bar{
+  max-width:var(--acreage-max,1440px);
+  margin-inline:auto;
+}
+
+/* ============================================ "Selling a farm?" — comp spec */
+/* The photograph must FILL its half. An Elementor image widget renders a plain
+   <img> that sits at its natural height, which left a pale gap beside the dark
+   panel instead of a full-bleed band. */
+.acreage-sell .acreage-sell__media{
+  min-height:clamp(200px,22vw,300px);
+  position:relative;
+  overflow:hidden;
+}
+.acreage-sell .acreage-sell__media > .elementor-widget-wrap{padding:0;height:100%;}
+.acreage-sell .acreage-sell__media .elementor-widget-image,
+.acreage-sell .acreage-sell__media .elementor-widget-container,
+.acreage-sell .acreage-sell__media figure,
+.acreage-sell .acreage-sell__media a{height:100%;margin:0;}
+.acreage-sell .acreage-sell__media img{
+  width:100%;height:100%;
+  object-fit:cover;display:block;
+}
+
+/* The copy sits vertically centred in the dark panel, as in the comp. */
+.acreage-sell .acreage-sell__panel > .elementor-widget-wrap{
+  align-content:center;
+  justify-content:center;
+}
+
+/* The two actions sit side by side with a 12px gap, not stacked. */
+.acreage-sell .acreage-sell__panel .elementor-widget-button{
+  display:inline-block;
+  width:auto;
+  margin-right:12px;
+}
+.acreage-sell .acreage-sell__panel .elementor-widget-button .elementor-button{
+  border-radius:0;
+}
+@media (max-width:600px){
+  .acreage-sell .acreage-sell__panel .elementor-widget-button{
+    display:block;width:100%;margin-right:0;
+  }
+}
+
+/* Elementor did not honour the 42/58 split — it rendered 18/82, leaving the
+   photograph as a narrow strip. The comp's ratio is flex 1 1 340px against
+   1 1 460px, so the widths are set explicitly here. */
+@media (min-width:768px){
+  .acreage-sell > .elementor-container > .acreage-sell__media{width:42%;}
+  .acreage-sell > .elementor-container > .acreage-sell__panel{width:58%;}
+}
+@media (max-width:767px){
+  .acreage-sell > .elementor-container > .acreage-sell__media{width:100%;min-height:220px;}
+  .acreage-sell > .elementor-container > .acreage-sell__panel{width:100%;}
+}
+
+/* The sell band is a photograph against a colour panel — both must run edge to
+   edge like the category band above it. Elementor was still capping the inner
+   container (2072px inside a 2545px section), which left a sliver of page
+   background at each end on a wide monitor. */
+.acreage-sell > .elementor-container{
+  max-width:none;
+  width:100%;
+}
+
+
+
+/* =============================================================== About */
+/* Copy and photograph share the top row; the figures run the full content
+   width beneath as one banded row. The old side-by-side put four statistics in
+   a 283px column and truncated the labels mid-word — the fix is the layout,
+   not smaller type. */
+
+.acreage-about__copy .elementor-widget-text-editor p{max-width:52ch;}
+.acreage-about__copy h2{max-width:26ch;}
+
+/* The photograph fills its half and crops rather than letterboxing. */
+.acreage-about__media img{
+  width:100%;
+  aspect-ratio:4/3;
+  object-fit:cover;
+  display:block;
+}
+
+/* --- the record band ---------------------------------------------------- */
+.acreage-stats{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  margin-top:clamp(40px,5vw,72px);
+  border-top:1px solid var(--acreage-rule,#DED5C0);
+  border-bottom:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-stat{
+  padding:clamp(24px,2.6vw,34px) clamp(18px,2vw,30px);
+  /* Hairline dividers between cells only — no outer verticals, so the band
+     reads as one continuous record rather than four separate boxes. */
+  border-inline-start:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-stat:first-child{border-inline-start:0;}
+
+.acreage-stat__value{
+  font-family:var(--acreage-serif,Georgia,serif);
+  font-size:clamp(34px,4vw,52px);
+  line-height:1;
+  color:var(--acreage-moss,#354027);
+  font-variant-numeric:tabular-nums;
+}
+.acreage-stat__label{
+  font-size:11px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--acreage-stone,#8A8172);
+  margin-top:12px;
+  max-width:22ch;
+  overflow-wrap:break-word;
+}
+
+@media (max-width:900px){
+  .acreage-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  /* On two columns the third cell starts a new row, so it loses its divider
+     and gains a horizontal rule instead. */
+  .acreage-stat:nth-child(odd){border-inline-start:0;}
+  .acreage-stat:nth-child(n+3){border-top:1px solid var(--acreage-rule,#DED5C0);}
+}
+@media (max-width:480px){
+  .acreage-stats{grid-template-columns:minmax(0,1fr);}
+  .acreage-stat{border-inline-start:0;}
+  .acreage-stat + .acreage-stat{border-top:1px solid var(--acreage-rule,#DED5C0);}
+}
+
+/* ======================================== single farm — main / aside split */
+/* Elementor has no preset for col-62 or col-38, so it fell back to roughly
+   81/19: the sidebar rendered 246px and the enquiry inputs 190px, which is
+   unusable for typing a name into. The comp is main 1 1 560px against aside
+   1 1 320px with a 280px floor, so the split is set explicitly here. */
+@media (min-width:1025px){
+  .acreage-single__main{width:64%;}
+  .acreage-single__aside{width:36%;min-width:340px;}
+}
+@media (min-width:768px) and (max-width:1024px){
+  .acreage-single__main{width:60%;}
+  .acreage-single__aside{width:40%;min-width:300px;}
+}
+@media (max-width:767px){
+  .acreage-single__main,
+  .acreage-single__aside{width:100%;}
+}
+
+/* The aside stays with the buyer as they read down a long listing. */
+@media (min-width:1025px){
+  .acreage-single__aside > .elementor-widget-wrap{
+    position:sticky;
+    top:110px;
+    align-content:flex-start;
+  }
+}
+
+/* Form fields fill the wider column rather than sitting at a fixed width. */
+.acreage-single__aside input[type=text],
+.acreage-single__aside input[type=email],
+.acreage-single__aside input[type=tel],
+.acreage-single__aside textarea,
+.acreage-single__aside .acreage-w-form__submit{
+  width:100%;
+  box-sizing:border-box;
+}
+
+/* ================================================ About page — the pillars */
+/* Three points, equal weight, divided by hairlines rather than boxed. Keeps the
+   page quiet: the photographs are the loud element on this site. */
+.acreage-pillars{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:0;
+  margin-top:clamp(28px,3vw,44px);
+  border-top:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-pillar{
+  padding:clamp(26px,3vw,38px) clamp(20px,2.4vw,34px);
+  border-inline-start:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-pillar:first-child{border-inline-start:0;padding-inline-start:0;}
+.acreage-pillar__title{
+  font-family:var(--acreage-serif,Georgia,serif);
+  font-weight:400;
+  font-size:20px;
+  line-height:1.25;
+  margin:0 0 12px;
+  color:var(--acreage-dark,#232B18);
+}
+.acreage-pillar__body{
+  margin:0;
+  font-size:15px;
+  line-height:1.7;
+  color:#5A5F52;
+  max-width:42ch;
+}
+@media (max-width:760px){
+  .acreage-pillar{
+    border-inline-start:0;
+    padding-inline:0;
+    border-top:1px solid var(--acreage-rule,#DED5C0);
+  }
+  .acreage-pillar:first-child{border-top:0;}
+  .acreage-pillars{border-top-width:0;}
+}
+
+/* Elementor's HTML widget shrink-wraps its content, so the statistics band
+   collapsed to its intrinsic width and centred at 2x2 instead of running the
+   content width at 4 across. */
+/* The HTML widget and its container both shrink-wrap. Elementor sizes the
+   widget from its content, so the statistics band collapsed to 354px and the
+   grid folded to two columns. Both levels need the full width. */
+.elementor-widget-html,
+.elementor-widget-html > .elementor-widget-container,
+.elementor-widget-html .acreage-stats,
+.elementor-widget-html .acreage-pillars{width:100%;}
+.acreage-stats{margin-inline:0;}
+
+/* The statistics section's own container was shrink-wrapping to 374px, which is
+   what actually collapsed the band — not the widget inside it. Elementor
+   containers are normally width:100%; this one is not, so it is set here. */
+.acreage-about > .elementor-container{width:100%;}
+
+/* ============================================ About — the record (not a band) */
+/* Deliberately NOT the homepage's four-across strip. This page is read, not
+   scanned, so each figure gets a row and a line of context beside it. Repeating
+   the homepage band here would add a second look at the same four numbers and
+   say nothing new. */
+.acreage-records{
+  margin-top:clamp(20px,2.4vw,32px);
+  border-top:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-record{
+  display:grid;
+  grid-template-columns:minmax(120px,168px) 1fr;
+  gap:clamp(18px,3vw,48px);
+  align-items:baseline;
+  padding:clamp(22px,2.6vw,32px) 0;
+  border-bottom:1px solid var(--acreage-rule,#DED5C0);
+}
+.acreage-record__figure{
+  font-family:var(--acreage-serif,Georgia,serif);
+  font-size:clamp(36px,4.4vw,58px);
+  line-height:.95;
+  color:var(--acreage-moss,#354027);
+  font-variant-numeric:tabular-nums;
+}
+.acreage-record__label{
+  font-size:11px;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  color:var(--acreage-stone,#8A8172);
+  margin-bottom:8px;
+}
+.acreage-record__gloss{
+  margin:0;
+  font-size:16px;
+  line-height:1.7;
+  color:#5A5F52;
+  max-width:56ch;
+}
+
+@media (max-width:640px){
+  .acreage-record{
+    grid-template-columns:minmax(0,1fr);
+    gap:10px;
+  }
+  .acreage-record__figure{font-size:40px;}
+}

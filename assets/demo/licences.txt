@@ -1,0 +1,40 @@
+DEMO PHOTOGRAPHY — LICENCES
+Africa Game Farms / Acreage theme
+
+These images ship with the theme purely so a fresh install has something to
+look at. They are demonstration content, not part of the theme's code, and a
+customer is expected to replace them with their own photography.
+
+Rights
+------
+The theme author has confirmed ownership of, or an extended licence for, every
+file listed below, covering redistribution as bundled demo content.
+
+Before selling or distributing this theme, verify that statement still holds
+and record the specific source and licence for each file in the table. An
+"assumed to be fine" entry is the one that causes trouble later.
+
+File                        Subject                                   Source / licence
+--------------------------  ----------------------------------------  ----------------
+hero.jpg                    Bushveld at first light, Waterberg        Client-supplied
+hero-alt.jpg                Waterhole at sunset                       Client-supplied
+farm-01.jpg                 Mixed bushveld, ridge line                Client-supplied
+farm-02.jpg                 Cattle on open pasture                    Client-supplied
+farm-03.jpg                 Open Karoo veld                           Client-supplied
+farm-04.jpg                 Track through hill country                Client-supplied
+farm-05.jpg                 River frontage, riverine bush             Client-supplied
+farm-06.jpg                 Grassland and koppie                      Client-supplied
+category-game.jpg           Plains game on open veld                  Client-supplied
+category-cattle.jpg         Cattle grazing under a tree               Client-supplied
+karoo-grass-detail.jpg      Backlit Karoo grass seedheads             Client-supplied
+article-01.jpg              Bushveld landscape (article header)       Client-supplied
+article-02.jpg              Aerial farmland (article header)          Client-supplied
+
+Notes
+-----
+"Client-supplied" means Africa Game Farms provided the file. For the AGF site
+itself that is straightforward. If this theme is sold to other customers, these
+photographs are the client's property and MUST be swapped for imagery the theme
+author owns or has licensed for redistribution.
+
+The theme screenshot (screenshot.png) is covered by the same statement.

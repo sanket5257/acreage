@@ -1,0 +1,368 @@
+/* Acreage — header, footer and the legacy homepage.
+
+   PHASE 3: the homepage rules leave with page-home.php when the Elementor kit
+   replaces them; the header and footer rules move into theme.css and this file
+   is deleted. Design tokens now live in ONE place: the :root block in theme.css.
+   Every value here is taken from the mockup's own inline styles, moved into
+   classes so the markup stays readable and the client can restyle in one place.
+   Palette: var(--acreage-paper) paper · #FCFAF2 raised · var(--acreage-moss) green · var(--acreage-sienna) ochre
+            #DED5C0 rule · #232B18 ink · var(--acreage-moss-light) muted · #665F52 stone */
+
+/* Content is capped and centred at every width. Backgrounds stay full-bleed —
+   the photograph and the coloured bands still run edge to edge — but the text,
+   grids and navigation inside them never stretch past --acreage-max. Change that one
+   value to rewiden or narrow the whole site.
+
+   The padding trick does the centring: on a narrow screen max() picks the
+   gutter, on a wide screen it picks half the leftover space, so no extra
+   wrapper element is needed anywhere. */
+.acreage-home{background:var(--acreage-paper);color:#1F2A21;}
+/* :where() contributes ZERO specificity, so these site-wide defaults sit at the
+   same weight as a bare "a" and can never outrank a component. Written as a
+   plain ".acreage-home a" (0-1-1) they beat single-class rules like
+   .acreage-skip, .acreage-hd__tel and .acreage-sell__ghost, and painted all
+   three dark-on-dark. This is the fix for that whole class of bug. */
+:where(.acreage-home) a{color:var(--acreage-moss);text-decoration:none;}
+:where(.acreage-home) a:hover{color:var(--acreage-sienna);}
+.acreage-pad{
+  padding-left:max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2));
+  padding-right:max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2));
+}
+
+/* Scroll reveal. Resting state is fully visible — JavaScript never hides
+   anything, so a non-firing observer costs the animation, not the content. */
+@keyframes acreage-rise{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:none;}}
+[data-reveal].is-in{animation:acreage-rise 700ms cubic-bezier(0.2,0.7,0.2,1) both;}
+@media (prefers-reduced-motion:reduce){[data-reveal].is-in{animation:none;}}
+
+/* ----------------------------------------------------------------- header */
+.acreage-hd{
+  display:flex;flex-wrap:wrap;gap:16px 32px;align-items:center;justify-content:space-between;
+  padding:18px max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2));
+  background:#FCFAF2;border-bottom:1px solid #DED5C0;
+  position:sticky;top:0;z-index:20;
+}
+.acreage-hd__brand{display:flex;flex-direction:column;line-height:1;text-decoration:none;}
+.acreage-hd__name{font-family:Georgia,'Times New Roman',serif;font-size:22px;letter-spacing:.01em;color:var(--acreage-moss);}
+.acreage-hd__tag{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--acreage-stone);margin-top:6px;}
+
+.acreage-hd__nav{
+  display:flex;flex-wrap:wrap;gap:clamp(12px,1.8vw,28px);align-items:center;
+  font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+}
+.acreage-hd__nav ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:clamp(12px,1.8vw,28px);align-items:center;}
+.acreage-hd__nav li{position:relative;}
+.acreage-hd__nav a{color:#3C4A3F;display:inline-flex;align-items:center;gap:7px;padding:8px 0;}
+.acreage-hd__nav .sub-menu{
+  display:none;position:absolute;top:100%;left:-18px;min-width:230px;flex-direction:column;
+  background:#FCFAF2;border:1px solid #DED5C0;box-shadow:0 20px 44px -26px rgba(28,34,18,.7);
+  padding:8px 0;z-index:30;gap:0;
+}
+.acreage-hd__nav li:hover > .sub-menu,
+.acreage-hd__nav li:focus-within > .sub-menu{display:flex;}
+.acreage-hd__nav .sub-menu a{padding:12px 22px;font-size:12px;transition:background 160ms ease;text-transform:none;letter-spacing:.04em;}
+.acreage-hd__nav .sub-menu a:hover{background:#EFE9DA;color:#232B18;}
+.acreage-hd__nav .menu-item-has-children > a::after{content:"\25BC";font-size:9px;opacity:.55;}
+
+/* Scoped to the nav on purpose. ".acreage-hd__nav a" sets a dark colour and
+   outranks a bare ".acreage-hd__tel", which left this pill dark-on-dark at
+   1.17:1 — invisible. Matching the nav specificity fixes it without !important. */
+.acreage-hd__nav .acreage-hd__tel{
+  display:inline-block;padding:10px 17px;
+  background:var(--acreage-moss);color:var(--acreage-paper);
+  font-size:12px;letter-spacing:.1em;text-decoration:none;
+  transition:background 180ms ease;
+}
+.acreage-hd__nav .acreage-hd__tel:hover,
+.acreage-hd__nav .acreage-hd__tel:focus{
+  background:var(--acreage-moss-deep);color:var(--acreage-paper);
+}
+
+.acreage-hd__burger{display:none;background:none;border:0;padding:10px;cursor:pointer;}
+.acreage-hd__burger span{display:block;width:22px;height:2px;background:#3C4A3F;margin:5px 0;}
+
+/* ------------------------------------------------------------------- hero */
+.acreage-hero{background:#FCFAF2;border-bottom:1px solid #DED5C0;}
+.acreage-hero__frame{position:relative;background:#E4DCCA;}
+.acreage-hero__frame img{width:100%;height:clamp(340px,50vw,700px);object-fit:cover;display:block;}
+.acreage-hero__wash{
+  position:absolute;inset:0;
+  /* Tuned for ANY photograph, not this one. The customer will swap the image,
+     so the top band is dark enough to carry the meta line over a bright sky. */
+  background:linear-gradient(to top,rgba(24,29,16,.74) 0%,rgba(24,29,16,.38) 34%,rgba(24,29,16,.20) 62%,rgba(24,29,16,.48) 100%);
+}
+.acreage-hero__inner{
+  position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;
+  padding:clamp(20px,3vw,44px) max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2)) clamp(76px,9vw,150px);
+}
+.acreage-hero__meta{display:flex;flex-wrap:wrap;gap:6px 24px;align-items:baseline;justify-content:space-between;}
+.acreage-hero__count{
+  font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:#E6DFC9;
+  text-shadow:0 1px 12px rgba(20,24,14,.7);
+}
+.acreage-hero__place{
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#D9D2BB;
+  text-shadow:0 1px 12px rgba(20,24,14,.8);
+}
+.acreage-hero__title{
+  font-family:Georgia,'Times New Roman',serif;font-weight:400;
+  font-size:clamp(29px,5.2vw,66px);line-height:1.06;letter-spacing:-.01em;
+  margin:0 0 16px;color:#FBF8ED;max-width:19ch;
+  text-shadow:0 2px 26px rgba(20,24,14,.6);text-wrap:pretty;
+}
+.acreage-hero__lede{
+  margin:0;font-size:clamp(15px,1.4vw,19px);line-height:1.55;color:#EAE4D2;max-width:46ch;
+  text-shadow:0 1px 16px rgba(20,24,14,.75);text-wrap:pretty;
+}
+
+/* ----------------------------------------------------------------- search */
+.acreage-srch__wrap{
+  margin:clamp(-62px,-7vw,-120px) auto 0;position:relative;z-index:5;
+  max-width:var(--acreage-max);
+  padding-left:var(--acreage-gutter);padding-right:var(--acreage-gutter);
+}
+@media (min-width:1440px){
+  .acreage-srch__wrap{padding-left:0;padding-right:0;}
+}
+.acreage-srch{
+  background:#FCFAF2;border:1px solid #DED5C0;
+  box-shadow:0 26px 60px -34px rgba(28,34,18,.7);padding:clamp(18px,2.2vw,30px);
+}
+.acreage-srch__head{
+  display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;justify-content:space-between;margin-bottom:16px;
+}
+.acreage-srch__title{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#3C4A3F;margin:0;font-weight:400;}
+.acreage-srch__live{font-size:12px;color:var(--acreage-sienna);letter-spacing:.04em;}
+.acreage-srch__fields{display:flex;flex-wrap:wrap;gap:10px;}
+.acreage-srch__field{
+  display:flex;flex-direction:column;gap:6px;min-width:0;flex:1 1 112px;
+  font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--acreage-moss-light);
+}
+.acreage-srch__field select{
+  appearance:none;-webkit-appearance:none;width:100%;min-width:0;background:#FCFAF2;
+  border:1px solid #C9C1B0;color:#1F2A21;font:inherit;font-size:14px;letter-spacing:0;
+  text-transform:none;padding:12px;min-height:46px;border-radius:0;
+}
+.acreage-srch__actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:16px;}
+.acreage-srch__go{
+  flex:1 1 200px;min-height:50px;display:flex;align-items:center;justify-content:center;
+  background:var(--acreage-moss);color:#F7F5EF;border:0;cursor:pointer;font:inherit;
+  font-size:13px;letter-spacing:.16em;text-transform:uppercase;transition:background 180ms ease;
+}
+.acreage-srch__go:hover{background:#232B18;color:#F7F5EF;}
+.acreage-srch__clear{
+  min-height:50px;padding:0 18px;background:transparent;color:var(--acreage-moss-light);border:1px solid #C9C1B0;
+  font:inherit;font-size:12px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+  display:inline-flex;align-items:center;
+}
+.acreage-srch__clear:hover{color:var(--acreage-moss);border-color:var(--acreage-moss);}
+.acreage-hero__tail{height:clamp(28px,3.5vw,56px);}
+
+/* ------------------------------------------------------------ section head */
+.acreage-sec{padding-top:clamp(40px,5vw,88px);padding-bottom:clamp(40px,5vw,88px);}
+.acreage-sec__head{
+  display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;justify-content:space-between;
+  border-bottom:1px solid #DED5C0;padding-bottom:20px;margin-bottom:clamp(24px,3vw,40px);
+}
+.acreage-h2{
+  font-family:Georgia,'Times New Roman',serif;font-weight:400;
+  font-size:clamp(26px,3vw,40px);margin:0 0 8px;color:#232B18;
+}
+.acreage-sub{margin:0;font-size:14px;color:var(--acreage-moss-light);}
+.acreage-seeall{
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--acreage-moss);
+  border-bottom:1px solid #C9C1B0;padding-bottom:3px;
+}
+
+/* ------------------------------------------------------------ farm cards */
+.acreage-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:clamp(18px,2vw,32px);}
+.acreage-c{
+  background:#FCFAF2;border:1px solid #DED5C0;display:flex;flex-direction:column;
+  transition:box-shadow 220ms ease,border-color 220ms ease,transform 220ms ease;
+}
+.acreage-c:hover{box-shadow:0 18px 40px -22px rgba(35,43,24,.55);border-color:var(--acreage-sienna);transform:translateY(-3px);}
+.acreage-c__media{position:relative;aspect-ratio:3/2;background:#E4DCCA;overflow:hidden;display:block;}
+.acreage-c__media img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform 600ms cubic-bezier(0.2,0.7,0.2,1);
+}
+.acreage-c:hover .acreage-c__media img{transform:scale(1.06);}
+.acreage-c__badge{
+  position:absolute;top:14px;left:14px;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;padding:7px 11px;background:var(--acreage-moss);color:var(--acreage-paper);
+}
+.acreage-c__badge--sold{background:var(--acreage-stone);color:#F7F5EF;}
+.acreage-c__body{padding:22px 22px 24px;display:flex;flex-direction:column;gap:12px;flex:1;}
+.acreage-c__meta{
+  display:flex;flex-wrap:wrap;gap:8px;font-size:10px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--acreage-stone);
+}
+.acreage-c__title{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:22px;line-height:1.2;margin:0;}
+.acreage-c__title a{color:#232B18;}
+.acreage-c__title a:hover{color:var(--acreage-sienna);}
+.acreage-c__price{font-size:20px;letter-spacing:.01em;color:var(--acreage-moss);}
+.acreage-c__vat{font-size:11px;color:var(--acreage-stone);margin-top:4px;}
+.acreage-c__excerpt{margin:0;font-size:14px;line-height:1.6;color:#5A5F52;text-wrap:pretty;}
+.acreage-c__foot{
+  margin-top:auto;padding-top:16px;border-top:1px solid #E4DED1;display:flex;flex-wrap:wrap;
+  gap:8px 18px;align-items:center;justify-content:space-between;
+}
+.acreage-c__ha{font-size:13px;color:var(--acreage-moss-light);}
+.acreage-c__links{display:flex;gap:14px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;}
+.acreage-c__links a{color:var(--acreage-moss);border-bottom:1px solid #C9C1B0;padding-bottom:2px;}
+.acreage-c__links a + a{color:var(--acreage-sienna);border-bottom-color:#DCC9B6;}
+
+.acreage-sec__foot{
+  margin-top:clamp(26px,3vw,44px);display:flex;flex-wrap:wrap;gap:16px 24px;
+  align-items:center;justify-content:space-between;
+}
+.acreage-btn-o{
+  display:inline-block;padding:15px 28px;border:1px solid var(--acreage-moss);color:var(--acreage-moss);
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  transition:background 200ms ease,color 200ms ease;
+}
+.acreage-btn-o:hover{background:var(--acreage-moss);color:#F7F5EF;}
+
+/* -------------------------------------------------------------- provinces */
+.acreage-provinces{background:#FCFAF2;border-top:1px solid #DED5C0;border-bottom:1px solid #DED5C0;}
+.acreage-provinces .acreage-h2{margin-bottom:10px;}
+.acreage-provinces__lede{margin:0 0 clamp(24px,3vw,40px);font-size:15px;color:var(--acreage-moss-light);max-width:56ch;}
+.acreage-tiles{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:1px;background:#DED5C0;border:1px solid #DED5C0;
+}
+.acreage-tile{
+  background:var(--acreage-paper);padding:22px 24px;display:flex;align-items:baseline;justify-content:space-between;
+  gap:14px;transition:background 200ms ease,padding-left 200ms ease;
+}
+.acreage-tile:hover{background:var(--acreage-moss);padding-left:32px;}
+.acreage-tile__name{font-family:Georgia,'Times New Roman',serif;font-size:19px;color:#232B18;transition:color 200ms ease;}
+.acreage-tile__count{font-size:13px;color:var(--acreage-sienna);letter-spacing:.04em;transition:color 200ms ease;}
+.acreage-tile:hover .acreage-tile__name,
+.acreage-tile:hover .acreage-tile__count{color:var(--acreage-paper);}
+
+/* ------------------------------------------------------------- categories */
+.acreage-cats{display:flex;flex-wrap:wrap;}
+.acreage-cat{flex:1 1 420px;min-width:280px;display:flex;flex-direction:column;}
+.acreage-cat__media{min-height:clamp(220px,26vw,340px);position:relative;background:#E4DCCA;}
+.acreage-cat__media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.acreage-cat__body{flex:1;padding:clamp(28px,3.5vw,56px) clamp(20px,4vw,60px);}
+.acreage-cat--game .acreage-cat__body{background:var(--acreage-moss);color:#E8E6DB;}
+.acreage-cat--cattle .acreage-cat__body{background:#EFE9DA;color:#232B18;}
+.acreage-cat__count{display:block;font-size:10px;letter-spacing:.24em;text-transform:uppercase;margin-bottom:16px;}
+.acreage-cat--game .acreage-cat__count{color:#A8B79E;}
+.acreage-cat--cattle .acreage-cat__count{color:var(--acreage-sienna);}
+.acreage-cat__title{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(24px,2.6vw,34px);margin:0 0 14px;}
+.acreage-cat__text{margin:0 0 22px;font-size:15px;line-height:1.65;max-width:44ch;}
+.acreage-cat--game .acreage-cat__text{color:#C7CDBC;}
+.acreage-cat--cattle .acreage-cat__text{color:#5A5F52;}
+.acreage-cat__link{
+  display:inline-block;padding:14px 24px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  transition:background 200ms ease,color 200ms ease;
+}
+.acreage-cat--game .acreage-cat__link{border:1px solid #7C8E76;color:#E8E6DB;}
+.acreage-cat--game .acreage-cat__link:hover{background:#E8E6DB;color:var(--acreage-moss);}
+.acreage-cat--cattle .acreage-cat__link{border:1px solid var(--acreage-moss);color:var(--acreage-moss);}
+.acreage-cat--cattle .acreage-cat__link:hover{background:var(--acreage-moss);color:#F7F5EF;}
+
+/* ------------------------------------------------------------------ about */
+.acreage-about{
+  padding:clamp(44px,6vw,104px) max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2));
+  display:flex;flex-wrap:wrap;gap:clamp(28px,5vw,80px);
+}
+.acreage-about__text{flex:1 1 380px;min-width:280px;scroll-margin-top:96px;}
+.acreage-eyebrow{display:block;font-size:10px;letter-spacing:.24em;text-transform:uppercase;color:var(--acreage-sienna);margin-bottom:20px;}
+.acreage-about__title{
+  font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(26px,3vw,40px);
+  line-height:1.15;margin:0 0 20px;color:#232B18;max-width:26ch;
+}
+.acreage-about__body{margin:0;font-size:16px;line-height:1.7;color:#5A5F52;max-width:52ch;text-wrap:pretty;}
+.acreage-stats{
+  flex:1 1 300px;min-width:260px;align-self:flex-start;display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:#DED5C0;border:1px solid #DED5C0;
+}
+.acreage-stat{background:#FCFAF2;padding:24px 20px 26px;}
+.acreage-stat__value{font-family:Georgia,'Times New Roman',serif;font-size:clamp(28px,3vw,38px);color:var(--acreage-moss);line-height:1;}
+.acreage-stat__label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--acreage-stone);margin-top:10px;}
+
+/* ------------------------------------------------------------------- sell */
+.acreage-sell{display:flex;flex-wrap:wrap;align-items:stretch;border-top:1px solid #DED5C0;}
+.acreage-sell__media{flex:1 1 340px;min-width:260px;min-height:clamp(200px,22vw,300px);position:relative;background:#E4DCCA;}
+.acreage-sell__media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+.acreage-sell__body{
+  flex:1 1 460px;min-width:280px;padding:clamp(32px,4.5vw,80px) clamp(20px,4vw,72px);
+  background:#232B18;color:#E8E6DB;display:flex;flex-direction:column;justify-content:center;
+}
+.acreage-sell__title{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:clamp(26px,3vw,40px);margin:0 0 16px;}
+.acreage-sell__text{margin:0 0 26px;font-size:16px;line-height:1.65;color:#BFC6B6;max-width:46ch;}
+.acreage-sell__actions{display:flex;flex-wrap:wrap;gap:12px;}
+.acreage-sell__primary{
+  display:inline-block;padding:16px 28px;background:#E8E6DB;color:#232B18;
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+}
+.acreage-sell__primary:hover{background:#FCFAF2;color:#232B18;}
+.acreage-sell__ghost{
+  display:inline-block;padding:16px 28px;border:1px solid #6F7F69;color:#E8E6DB;
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+}
+.acreage-sell__ghost:hover{border-color:#E8E6DB;color:#E8E6DB;}
+
+/* ----------------------------------------------------------------- footer */
+.acreage-ft{
+  background:#FCFAF2;border-top:1px solid #DED5C0;
+  padding:clamp(36px,4.5vw,72px) max(var(--acreage-gutter),calc((100% - var(--acreage-max)) / 2)) 28px;
+}
+.acreage-ft__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:clamp(24px,3vw,48px);}
+.acreage-ft__name{font-family:Georgia,'Times New Roman',serif;font-size:20px;color:var(--acreage-moss);margin-bottom:14px;}
+.acreage-ft__contact{font-size:14px;line-height:1.9;color:#5A5F52;}
+.acreage-ft__label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--acreage-stone);margin-bottom:14px;}
+.acreage-ft__links,
+.acreage-ft__links ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;font-size:14px;}
+.acreage-ft__provinces{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px 18px;font-size:14px;}
+.acreage-ft__bar{
+  margin-top:clamp(28px,3vw,48px);padding-top:20px;border-top:1px solid #E4DED1;
+  display:flex;flex-wrap:wrap;gap:10px 32px;justify-content:space-between;font-size:12px;color:var(--acreage-stone);
+}
+
+/* ----------------------------------------------------------------- mobile */
+@media (max-width:900px){
+  .acreage-hd__burger{display:block;order:3;}
+  .acreage-hd__nav{
+    display:none;flex-basis:100%;order:4;flex-direction:column;align-items:flex-start;gap:0;
+  }
+  .acreage-hd__nav.is-open{display:flex;}
+  .acreage-hd__nav ul{flex-direction:column;align-items:flex-start;gap:0;width:100%;}
+  .acreage-hd__nav li{width:100%;}
+  .acreage-hd__nav a{padding:12px 0;width:100%;}
+  .acreage-hd__nav .sub-menu{position:static;display:flex;border:0;box-shadow:none;padding:0 0 0 18px;}
+  .acreage-hd__tel{margin-top:8px;}
+}
+
+/* ------------------------------------ the core menu widget, inside Elementor */
+/* Elementor's own Nav Menu widget is Pro, so an Elementor-built header uses the
+   core WordPress nav-menu widget. Out of the box that is a bulleted list; this
+   makes it read as a navigation bar without anyone touching CSS. */
+.elementor-widget-wp-widget-nav_menu ul{
+  list-style:none;margin:0;padding:0;
+  display:flex;flex-wrap:wrap;gap:clamp(12px,1.8vw,28px);align-items:center;
+}
+.elementor-widget-wp-widget-nav_menu li{position:relative;}
+.elementor-widget-wp-widget-nav_menu a{
+  display:inline-block;padding:8px 0;color:#3C4A3F;text-decoration:none;
+  font-size:13px;letter-spacing:.06em;text-transform:uppercase;
+}
+.elementor-widget-wp-widget-nav_menu a:hover{color:var(--acreage-sienna);}
+.elementor-widget-wp-widget-nav_menu .sub-menu{
+  display:none;position:absolute;top:100%;left:-18px;min-width:230px;
+  background:#FCFAF2;border:1px solid #DED5C0;padding:8px 0;z-index:30;
+  box-shadow:0 20px 44px -26px rgba(28,34,18,.7);
+}
+.elementor-widget-wp-widget-nav_menu li:hover > .sub-menu,
+.elementor-widget-wp-widget-nav_menu li:focus-within > .sub-menu{display:block;}
+.elementor-widget-wp-widget-nav_menu .sub-menu a{padding:12px 22px;text-transform:none;font-size:12px;}
+.elementor-widget-wp-widget-nav_menu .sub-menu a:hover{background:#EFE9DA;color:#232B18;}
+
+@media (max-width:900px){
+  .elementor-widget-wp-widget-nav_menu ul{flex-direction:column;align-items:flex-start;gap:0;}
+  .elementor-widget-wp-widget-nav_menu .sub-menu{position:static;display:block;border:0;box-shadow:none;padding-left:16px;}
+}

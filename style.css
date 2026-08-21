@@ -1,0 +1,30 @@
+/*
+Theme Name:  Acreage
+Theme URI:   https://example.com/acreage
+Author:      Sanket
+Author URI:  https://example.com
+Description: An Elementor-first theme for land, farm and rural property listings. Listings live in the Acreage Core companion plugin, never in the theme, so your properties survive any redesign. Works fully on Elementor Free; adds Theme Builder locations when Elementor Pro is present.
+Version:     1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 7.4
+License:     GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: acreage
+Domain Path: /languages
+Tags: custom-menu, featured-images, translation-ready, right-sidebar, block-styles, wide-blocks, rtl-language-support, threaded-comments, accessibility-ready
+*/
+
+/*
+ * This file exists for two reasons and holds almost no CSS.
+ *
+ *  1. WordPress reads the header above to identify the theme. Without it there
+ *     is no theme.
+ *  2. A child theme's own style.css is loaded AFTER this one, which is what lets
+ *     a customer override anything here without editing the parent.
+ *
+ * The real stylesheets live in assets/css/ and are enqueued from inc/enqueue.php,
+ * because a stylesheet loaded through wp_enqueue_style() can be versioned,
+ * conditionally loaded, and de-registered by a plugin. One pasted into this file
+ * can do none of those things.
+ */
