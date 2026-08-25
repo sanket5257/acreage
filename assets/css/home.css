@@ -216,12 +216,30 @@
   margin-top:clamp(26px,3vw,44px);display:flex;flex-wrap:wrap;gap:16px 24px;
   align-items:center;justify-content:space-between;
 }
+/* The outline variant. Same metrics as .acreage-btn so the two sit level
+   beside each other; only the fill differs. */
 .acreage-btn-o{
-  display:inline-block;padding:15px 28px;border:1px solid var(--acreage-moss);color:var(--acreage-moss);
-  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-  transition:background 200ms ease,color 200ms ease;
+  cursor:pointer;background-color:transparent;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
+  color:var(--acreage-btn-bg,#354027);
+  padding:var(--acreage-btn-pad-y,13px) var(--acreage-btn-pad-x,28px);
+  border:1px solid var(--acreage-btn-bg,#354027);
+  border-radius:var(--acreage-btn-radius,0px);
+  font-family:inherit;
+  font-size:var(--acreage-btn-size,12px);
+  font-weight:var(--acreage-btn-weight,700);
+  letter-spacing:var(--acreage-btn-tracking,.14em);
+  text-transform:var(--acreage-btn-transform,uppercase);
+  transition:background-color .18s,color .18s,border-color .18s;
 }
-.acreage-btn-o:hover{background:var(--acreage-moss);color:#F7F5EF;}
+.acreage-btn-o:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+  border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
 
 /* -------------------------------------------------------------- provinces */
 .acreage-provinces{background:#FCFAF2;border-top:1px solid #DED5C0;border-bottom:1px solid #DED5C0;}

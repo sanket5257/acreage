@@ -48,46 +48,64 @@ running, because it creates the sample farms and builds the pages with them.
 The same screen has a "Remove demo content" button that deletes everything the
 import created, and nothing else.
 
-6. Make it yours: Appearance > Theme Options for the telephone number, email,
-   disclaimer and page wording. Colours and fonts are in Elementor's Site
-   Settings — see the FAQ below.
+6. Make it yours: Appearance > Theme Options — colours, typefaces, buttons,
+   layout and your contact details. Page wording is edited on the page itself
+   in Elementor.
 
 == Frequently Asked Questions ==
 
-= Where do I change the phone number, email and homepage wording? =
+= What can I change in Appearance > Theme Options? =
 
-Appearance > Theme Options. It has four tabs:
+Five tabs:
 
-  Site details    telephone, fax, email and the footer disclaimer. These show
-                  on every page, so this is the tab most people need.
-  Homepage copy   the hero, the statistics band, the featured and province
-                  bands, the about and sell-your-farm sections.
-  Page headings   the masthead on Farms for Sale, Articles and Contact.
-  Colours & fonts where to change them, which is Elementor Site Settings.
+  Colours      all nine palette colours, each a colour picker. The whole
+               stylesheet is written against them, so one change reaches every
+               heading, button, border, link and card on the site.
+  Typography   heading and body typeface from sixteen faces, body text size,
+               line height and a heading scale.
+  Buttons      solid or outline, background, text and hover colours, corner
+               radius, padding, uppercase or as-typed, and letter spacing.
+  Layout       content width, farms per row, farm photograph shape and corner
+               radius.
+  Site details telephone, fax, email and the footer disclaimer.
 
-Clear any field and it falls back to the theme default, so there is no way to
-end up with a blank header.
+There is a "Reset all settings" button at the foot of every tab. It puts the
+controls back to the design default and does not touch your content, pages or
+farms.
 
-= I changed a homepage field and the page did not change. Why? =
+Every control ships at the design default, and a site that changes none of them
+renders byte-for-byte identically to one without the screen.
 
-Because that page is built in Elementor, and Elementor stores its content in the
-page itself. The Homepage copy fields seed the page when the demo importer
-builds it, and they drive the theme's own homepage when Elementor is not
-running — they are not a live feed into a page that already exists.
+= Do the Google fonts slow the site down? =
 
-Edit a built page the normal way: open it with Elementor and change the text
-there. The Site details tab is different — the telephone number and email are
+Only if you choose one. The two default faces — Georgia for headings, Helvetica
+for body — are already on every machine and load instantly, so a default install
+makes no third-party font request at all. Pick one of the fourteen Google
+families and a single stylesheet is requested for both faces together, with
+display=swap so text stays visible while it loads.
+
+= I set a colour in Elementor and one in Theme Options. Which wins? =
+
+Theme Options. Its CSS is added after Elementor's, deliberately, because it is
+the screen you will look for first and a control that silently loses to
+something else is worse than no control.
+
+Elementor's Site Settings still drive Elementor's own widgets, so both remain
+usable — just pick one place to set a given colour and stay there.
+
+= Why is there no field for the homepage wording? =
+
+Because it would not work. Pages are built in Elementor and Elementor stores
+each page's content in the page itself, so a "Hero heading" field in a settings
+screen could not change a page that had already been built — it would sit there
+looking editable and do nothing.
+
+Page wording is edited where the page is: open it with Elementor and change the
+text. Theme Options is for the things that apply across the whole site.
+
+Site details are the exception. The telephone number, email and disclaimer are
+printed by the theme's own header and footer rather than by Elementor, and are
 read fresh on every page load, so those take effect immediately.
-
-= Where do I change the colours and fonts? =
-
-Edit any page with Elementor, open the hamburger menu at the top left, then
-Site Settings > Global Colors and Site Settings > Global Fonts.
-
-The theme's palette and its two typefaces are mapped onto those, so one change
-there updates every heading, button, border and link across the whole site,
-including pages the demo built. Appearance > Theme Options > Colours & fonts
-lists the palette and the CSS variable behind each colour, for child themes.
 
 = Do I need Elementor Pro? =
 
@@ -104,6 +122,29 @@ reactivate it.
 = Will I lose my listings if I change theme? =
 
 No. They belong to the Acreage Core plugin, not the theme.
+
+= Where do I see the enquiries people have sent? =
+
+Farms > Enquiries. Every enquiry sent through the built-in form is saved there
+as well as emailed, with the sender's name, email, telephone, message and the
+farm they were asking about. Unread ones show a count beside the menu item, and
+there is an "Export all as CSV" button for a mail-merge or a CRM import.
+
+The reason it saves as well as sends is that email is not reliable. A host with
+no SMTP configured, a missing SPF record, a spam filter or a shared inbox nobody
+watches will all lose an enquiry silently, and on a listings site that is the
+whole return on the advert that produced it. Any enquiry whose notification
+email failed is marked "Email failed — reply by hand" in the list, so you find
+out rather than never knowing.
+
+Enquiries are stored privately: no front-end URL, excluded from search, and not
+exposed over the REST API.
+
+= Do enquiries from Contact Form 7 appear there too? =
+
+No. A form plugin keeps its own records — Contact Form 7 stores nothing by
+default, and its companion plugin Flamingo is what saves submissions there.
+Farms > Enquiries lists what the theme's own built-in form receives.
 
 = Can I use Contact Form 7 instead of the built-in form? =
 

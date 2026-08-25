@@ -165,32 +165,48 @@ class Acreage_Elementor_Template {
 		) );
 	}
 
-	private function button( $text, $link, $bg, $colour, $border = '' ) {
-		$settings = array(
-			'text'                      => $text,
-			'link'                      => array( 'url' => $link ),
-			'background_color'          => $bg,
-			'button_text_color'         => $colour,
-			'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
-			'text_padding'              => $this->padding( 15, 28, 15, 28 ),
-			'typography_typography'     => 'custom',
-			'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
-			'typography_font_weight'    => '700',
-			'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
-			'typography_text_transform' => 'uppercase',
-		);
-
-		if ( '' === $bg ) {
-			$settings['background_color'] = 'rgba(0,0,0,0)';
-		}
-
-		if ( $border ) {
-			$settings['border_border'] = 'solid';
-			$settings['border_width']  = array( 'unit' => 'px', 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1', 'isLinked' => true );
-			$settings['border_color']  = $border;
-		}
-
-		return $this->widget( 'button', $settings );
+	/**
+	 * A button.
+	 *
+	 * TWO VARIANTS, AND ONLY TWO.
+	 *
+	 * This used to take a background, a text colour and a border colour, and
+	 * bake them — plus its own padding and letter-spacing — into each button as
+	 * Elementor settings. Two call sites therefore produced two buttons that
+	 * matched neither each other nor the theme's own .acreage-btn: one green
+	 * outline at 15/28 with 1.9px tracking, one light-grey fill with dark text.
+	 * Four different buttons on one site, and none of them answered Appearance >
+	 * Theme Options, because a value stored in the page always beats a stylesheet.
+	 *
+	 * Now the widget carries nothing but its text, its link and a class. What it
+	 * looks like is decided by that class, in CSS, from the same variables every
+	 * other button on the site reads.
+	 *
+	 * @param string $text    Label.
+	 * @param string $link    URL.
+	 * @param string $variant 'primary' (solid fill) or 'outline'.
+	 * @param array  $extra   Layout-only settings, e.g. sitting two buttons side
+	 *                        by side. Never appearance — that is what the class
+	 *                        is for, and a colour baked in here would be exactly
+	 *                        the problem this rewrite removed.
+	 * @return array
+	 */
+	private function button( $text, $link, $variant = 'primary', $extra = array() ) {
+		return $this->widget( 'button', array_merge( array(
+			'text'         => $text,
+			'link'         => array( 'url' => $link ),
+			// Widgets take _css_classes; sections and columns take css_classes.
+			/*
+			 * A WRAPPER class, not a button class.
+			 *
+			 * Elementor puts _css_classes on the widget's outer <div>, never on
+			 * the <a class="elementor-button"> inside it. Using .acreage-btn here
+			 * therefore painted a button-shaped box AROUND the button and left
+			 * the button itself at Elementor's default grey. Hence a separate
+			 * name whose rules reach through to the anchor.
+			 */
+			'_css_classes' => 'outline' === $variant ? 'acreage-cta acreage-cta--outline' : 'acreage-cta',
+		), $extra ) );
 	}
 
 	/* -------------------------------------------------------------- the page */
@@ -201,12 +217,10 @@ class Acreage_Elementor_Template {
 	 * @return array
 	 */
 	public function build() {
-		$farms_url = function_exists( 'acreage_farms_url' ) ? acreage_farms_url() : home_url( '/' );
-
 		return array(
 			$this->hero(),
 			$this->search(),
-			$this->recently_listed( $farms_url ),
+			$this->recently_listed(),
 
 			/*
 			 * NO "Featured farms" band.
@@ -440,7 +454,6 @@ class Acreage_Elementor_Template {
 					array( $this->widget( 'acreage-farm-search', array(
 						'heading'       => __( 'Search all listings', 'acreage' ),
 						'submit_text'   => __( 'Search farms', 'acreage' ),
-						'button_bg'     => self::GREEN,
 						'bg'            => self::RAISED,
 						'field_columns' => '5',
 					) ) ),
@@ -467,7 +480,7 @@ class Acreage_Elementor_Template {
 		);
 	}
 
-	private function recently_listed( $farms_url ) {
+	private function recently_listed() {
 		return $this->section(
 			array(
 				$this->column( array(
@@ -488,7 +501,15 @@ class Acreage_Elementor_Template {
 						'load_more'      => 'yes',
 						'load_more_text' => __( 'Show more farms', 'acreage' ),
 					) ),
-					$this->button( __( 'Browse all farms', 'acreage' ), $farms_url, '', self::GREEN, self::GREEN ),
+					/*
+					 * No "Browse all farms" button here.
+					 *
+					 * The grid above it already carries tabs and a Load more, so
+					 * the section offered three different ways to see more farms
+					 * stacked on top of each other. The sub-heading still says
+					 * where the full inventory lives, and the main navigation has
+					 * carried Farms for Sale all along.
+					 */
 				) ),
 			),
 			array(
@@ -726,41 +747,21 @@ class Acreage_Elementor_Template {
 							'#BFC6B6',
 							16
 						),
-						$this->widget( 'button', array(
-							'text'                      => __( 'List your farm', 'acreage' ),
-							'link'                      => array( 'url' => '#footer' ),
-							'background_color'          => self::LIGHT,
-							'button_text_color'         => self::DARK,
-							'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
-							'text_padding'              => $this->padding( 16, 28, 16, 28 ),
-							'typography_typography'     => 'custom',
-							'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
-							'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
-							'typography_text_transform' => 'uppercase',
-							'_element_custom_width'     => 'yes',
-							'_element_width'            => 'initial',
-							'_inline_size'              => 'auto',
+						$this->button( __( 'List your farm', 'acreage' ), '#footer', 'primary', array(
+							'_element_custom_width' => 'yes',
+							'_element_width'        => 'initial',
+							'_inline_size'          => 'auto',
 						) ),
 						// The comp's second, quieter action. It was missing entirely.
-						$this->widget( 'button', array(
-							'text'                      => __( 'Ask a question', 'acreage' ),
-							'link'                      => array( 'url' => '#footer' ),
-							'background_color'          => 'rgba(0,0,0,0)',
-							'button_text_color'         => '#E8E6DB',
-							'border_border'             => 'solid',
-							'border_width'              => array( 'unit' => 'px', 'top' => '1', 'right' => '1', 'bottom' => '1', 'left' => '1', 'isLinked' => true ),
-							'border_color'              => '#6F7F69',
-							'border_radius'             => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => true ),
-							'text_padding'              => $this->padding( 16, 28, 16, 28 ),
-							'typography_typography'     => 'custom',
-							'typography_font_size'      => array( 'unit' => 'px', 'size' => 12 ),
-							'typography_letter_spacing' => array( 'unit' => 'px', 'size' => 1.9 ),
-							'typography_text_transform' => 'uppercase',
+						$this->button( __( 'Ask a question', 'acreage' ), '#footer', 'outline', array(
+							'_element_custom_width' => 'yes',
+							'_element_width'        => 'initial',
+							'_inline_size'          => 'auto',
 						) ),
 					),
 					58,
 					array(
-						'css_classes'           => 'acreage-sell__panel',
+						'css_classes'           => 'acreage-sell__panel acreage-on-dark',
 						'background_background' => 'classic',
 						'background_color'      => self::DARK,
 						'padding'               => $this->padding( 80, 72, 80, 72 ),
@@ -846,51 +847,133 @@ class Acreage_Elementor_Template {
 
 	/* ============================================================ FOOTER */
 
+	/**
+	 * The footer.
+	 *
+	 * WHAT WAS WRONG WITH THE OLD ONE
+	 *
+	 * Three columns, and the middle one held a single link under a "Browse"
+	 * heading, so a third of the footer read as unfinished. The provinces were
+	 * a run of names separated by slashes that wrapped mid-list. The legal line
+	 * sat in its own section with a large gap above it and no rule to separate
+	 * it, so it looked stranded rather than deliberate.
+	 *
+	 * WHAT THIS DOES INSTEAD
+	 *
+	 * Four columns of real navigation — brand and contact, the two things
+	 * somebody browses by, the pages about the agency, and the provinces as a
+	 * proper two-column list rather than a sentence. Then a bottom bar,
+	 * separated by a hairline, carrying the copyright and the disclaimer on one
+	 * line. Links are marked up as lists and styled by the theme, so they line
+	 * up and take a hover state.
+	 *
+	 * @return array
+	 */
 	public function build_footer() {
-		$provinces = function_exists( 'acreage_home_provinces' ) ? acreage_home_provinces( 9 ) : array();
-		$links     = array();
+		$provinces = function_exists( 'acreage_home_provinces' ) ? acreage_home_provinces( 10 ) : array();
+		$farms     = acreage_farms_url();
+
+		$province_links = array();
 
 		foreach ( $provinces as $province ) {
-			$links[] = sprintf( '<a href="%s">%s</a>', esc_url( $province['url'] ), esc_html( $province['name'] ) );
+			$province_links[] = array( $province['name'], $province['url'] );
 		}
 
-		$contact = esc_html( acreage_option( 'phone', '' ) ) . '<br>' . esc_html( acreage_option( 'email', '' ) );
+		$phone = acreage_option( 'phone', '' );
+		$email = acreage_option( 'email', '' );
+
+		/*
+		 * Tel and mailto rather than plain text. Half of this footer's readers
+		 * are on a phone, where a telephone number that cannot be tapped is
+		 * just an inconvenience.
+		 */
+		$contact = array();
+
+		if ( $phone ) {
+			$contact[] = sprintf(
+				'<a class="acreage-f__contact" href="tel:%s">%s</a>',
+				esc_attr( preg_replace( '/[^0-9+]/', '', $phone ) ),
+				esc_html( $phone )
+			);
+		}
+
+		if ( $email ) {
+			$contact[] = sprintf(
+				'<a class="acreage-f__contact" href="mailto:%1$s">%1$s</a>',
+				esc_html( $email )
+			);
+		}
 
 		return array(
 			$this->section(
 				array(
 					$this->column( array(
-						$this->heading( get_bloginfo( 'name' ), 20, self::GREEN, 'div' ),
-						$this->text( $contact, '#5A5F52', 14 ),
-					), 33 ),
-					$this->column( array(
-						$this->eyebrow( __( 'Browse', 'acreage' ), self::STONE ),
+						$this->heading( get_bloginfo( 'name' ), 22, self::GREEN, 'div' ),
 						$this->text(
-							sprintf( '<a href="%s">%s</a>', esc_url( acreage_farms_url() ), esc_html__( 'All farms for sale', 'acreage' ) ),
-							'#5A5F52',
+							'<p class="acreage-f__tag">' . esc_html( get_bloginfo( 'description' ) ) . '</p>'
+							. implode( '', $contact ),
+							self::MUTED,
 							14
 						),
-					), 33 ),
+					), 28 ),
+
+					$this->column( array(
+						$this->eyebrow( __( 'Farms', 'acreage' ), self::STONE ),
+						$this->text( $this->footer_links( array(
+							array( __( 'All farms for sale', 'acreage' ), $farms ),
+							array( __( 'Game farms', 'acreage' ), add_query_arg( 'listing_category', 'game-farms', $farms ) ),
+							array( __( 'Cattle farms', 'acreage' ), add_query_arg( 'listing_category', 'cattle-farms', $farms ) ),
+							array( __( 'Sell your farm', 'acreage' ), home_url( '/#sell' ) ),
+						) ), self::MUTED, 14 ),
+					), 20 ),
+
+					$this->column( array(
+						$this->eyebrow( __( 'Agency', 'acreage' ), self::STONE ),
+						$this->text( $this->footer_links( array(
+							array( __( 'About us', 'acreage' ), home_url( '/about-us/' ) ),
+							array( __( 'Articles & news', 'acreage' ), home_url( '/articles-news/' ) ),
+							array( __( 'Contact us', 'acreage' ), home_url( '/contact-us/' ) ),
+							array( __( 'Agency disclaimer', 'acreage' ), home_url( '/agency-disclaimer/' ) ),
+						) ), self::MUTED, 14 ),
+					), 20 ),
+
 					$this->column( array(
 						$this->eyebrow( __( 'Provinces', 'acreage' ), self::STONE ),
-						$this->text( implode( ' &nbsp;/&nbsp; ', $links ), '#5A5F52', 14 ),
-					), 34 ),
+						$this->text(
+							$this->footer_links( $province_links, 'acreage-f__nav--split' ),
+							self::MUTED,
+							14
+						),
+					), 32 ),
 				),
 				array(
 					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
 					'background_background' => 'classic',
 					'background_color'      => self::RAISED,
-					'padding'               => $this->padding( 72, 72, 20, 72 ),
+					'padding'               => $this->padding( 64, 72, 40, 72 ),
+					'padding_mobile'        => $this->padding( 48, 22, 32, 22 ),
 					'border_border'         => 'solid',
 					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
 					'border_color'          => self::RULE,
+					'css_classes'           => 'acreage-f',
 				)
 			),
+
+			// The bottom bar. A hairline above it is what stops the legal line
+			// looking like a paragraph somebody forgot to delete.
 			$this->section(
 				array(
 					$this->column( array(
 						$this->text(
-							esc_html__( 'All prices exclude VAT if applicable. Details subject to confirmation.', 'acreage' ),
+							'<p class="acreage-f__bottom">'
+							. '<span>' . sprintf(
+								/* translators: 1: year, 2: site name. */
+								esc_html__( '© %1$s %2$s', 'acreage' ),
+								esc_html( gmdate( 'Y' ) ),
+								esc_html( get_bloginfo( 'name' ) )
+							) . '</span>'
+							. '<span>' . esc_html__( 'All prices exclude VAT if applicable. Details subject to confirmation.', 'acreage' ) . '</span>'
+							. '</p>',
 							self::STONE,
 							12
 						),
@@ -900,15 +983,47 @@ class Acreage_Elementor_Template {
 					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
 					'background_background' => 'classic',
 					'background_color'      => self::RAISED,
-					'padding'               => $this->padding( 0, 72, 24, 72 ),
+					'padding'               => $this->padding( 18, 72, 22, 72 ),
+					'padding_mobile'        => $this->padding( 18, 22, 22, 22 ),
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
 				)
 			),
 		);
 	}
 
-	/* =========================================================== ARCHIVE */
+	/**
+	 * A footer column's links, as a list rather than a sentence.
+	 *
+	 * The provinces used to be imploded with slashes into one paragraph, which
+	 * wrapped wherever the width happened to run out and left orphans hanging on
+	 * the second line. A list wraps into columns predictably and gives every
+	 * link its own hit area.
+	 *
+	 * @param array  $links Each entry [ label, url ].
+	 * @param string $extra Extra class, e.g. to split into two columns.
+	 * @return string
+	 */
+	private function footer_links( $links, $extra = '' ) {
+		if ( ! $links ) {
+			return '';
+		}
 
-	/** Farms for Sale: filters beside the results, as the archive mockup shows. */
+		$items = '';
+
+		foreach ( $links as $link ) {
+			list( $label, $url ) = $link;
+			$items .= sprintf( '<li><a href="%s">%s</a></li>', esc_url( $url ), esc_html( $label ) );
+		}
+
+		return sprintf(
+			'<ul class="acreage-f__nav %s">%s</ul>',
+			esc_attr( $extra ),
+			$items
+		);
+	}
+
 	public function build_archive() {
 		return array(
 			$this->section(
@@ -964,29 +1079,22 @@ class Acreage_Elementor_Template {
 	public function build_single() {
 		return array(
 			/*
-			 * Breadcrumb bar. Sits directly under the header on the comp, on the
-			 * raised paper with a hairline beneath, so it reads as chrome rather
-			 * than as page content.
+			 * NO BREADCRUMB BAR HERE, DELIBERATELY.
+			 *
+			 * The demo used to open every farm page with a strip reading
+			 * "Home / Cattle farms / Namibia / Otjiwarongo Cattle Post", then
+			 * "Back to results" and "Prev / Next" — five lines of navigation
+			 * before a buyer saw a single photograph, repeating a farm name that
+			 * the hero was about to say again anyway. It pushed the product
+			 * below the fold to solve a problem the browser Back button already
+			 * solves.
+			 *
+			 * The widget still exists, so anyone who wants it can drop the Farm
+			 * Details widget on the page and set its part to Breadcrumb. It is
+			 * simply not what a new site starts with.
 			 */
-			$this->section(
-				array(
-					$this->column( array(
-						$this->widget( 'acreage-farm-details', array( 'part' => 'breadcrumb' ) ),
-					) ),
-				),
-				array(
-					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
-					'padding'               => $this->padding( 14, 72, 14, 72 ),
-					'background_background' => 'classic',
-					'background_color'      => self::RAISED,
-					'border_border'         => 'solid',
-					'border_width'          => array( 'unit' => 'px', 'top' => '0', 'right' => '0', 'bottom' => '1', 'left' => '0', 'isLinked' => false ),
-					'border_color'          => self::RULE,
-				)
-			),
 
-			// The hero band carries the name, place, extent and price over the
-			// main photograph — full bleed, like the comp.
+			// The hero: photograph beside the farm's particulars.
 			$this->section(
 				array(
 					$this->column( array(
@@ -1002,7 +1110,9 @@ class Acreage_Elementor_Template {
 			$this->section(
 				array(
 					$this->column( array(
-						$this->widget( 'acreage-farm-details', array( 'part' => 'gallery', 'columns' => '3' ) ),
+						// No column count: the gallery sizes its thumbnails and fits
+						// as many to the row as the width allows.
+						$this->widget( 'acreage-farm-details', array( 'part' => 'gallery' ) ),
 					) ),
 				),
 				array(
@@ -1028,7 +1138,6 @@ class Acreage_Elementor_Template {
 							$this->widget( 'acreage-farm-details', array( 'part' => 'facts' ) ),
 							$this->widget( 'acreage-enquiry-form', array(
 								'heading'   => __( 'Ask about this farm', 'acreage' ),
-								'button_bg' => self::GREEN,
 							) ),
 						),
 						38,
@@ -1043,6 +1152,39 @@ class Acreage_Elementor_Template {
 				array(
 					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
 					'padding'       => $this->padding( 0, 72, 88, 72 ),
+				)
+			),
+
+			/*
+			 * Location.
+			 *
+			 * "Where is it?" is the second question every buyer asks, after the
+			 * price, and until now the layout had no answer on it — the widget
+			 * existed but a new site started without a slot for it, so the map a
+			 * client had filled in had nowhere to appear.
+			 *
+			 * The band folds itself away on any farm with no location set, so
+			 * shipping it switched on costs nothing on the farms that have not
+			 * been given one yet.
+			 */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->widget( 'acreage-farm-details', array(
+							'part'             => 'location',
+							'show_headings'    => 'yes',
+							'location_heading' => __( 'Location', 'acreage' ),
+						) ),
+					) ),
+				),
+				array(
+					'content_width'         => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'               => $this->padding( 72, 72, 88, 72 ),
+					'background_background' => 'classic',
+					'background_color'      => self::RAISED,
+					'border_border'         => 'solid',
+					'border_width'          => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+					'border_color'          => self::RULE,
 				)
 			),
 
@@ -1225,7 +1367,7 @@ class Acreage_Elementor_Template {
 							'#BFC6B6',
 							16
 						),
-						$this->button( __( 'Contact us', 'acreage' ), home_url( '/contact-us/' ), self::LIGHT, self::DARK ),
+						$this->button( __( 'Contact us', 'acreage' ), home_url( '/contact-us/' ), 'primary' ),
 					) ),
 				),
 				array(
@@ -1234,6 +1376,12 @@ class Acreage_Elementor_Template {
 					'padding_mobile'        => $this->padding( 48, 22, 48, 22 ),
 					'background_background' => 'classic',
 					'background_color'      => self::DARK,
+					/*
+					 * Dark ground. This does not add a button variant — it flips
+					 * the button variables for its own subtree, so the SAME
+					 * primary button stays readable here.
+					 */
+					'css_classes'           => 'acreage-on-dark',
 				)
 			),
 		);
@@ -1339,7 +1487,6 @@ class Acreage_Elementor_Template {
 					$this->column( array(
 						$this->widget( 'acreage-enquiry-form', array(
 							'heading'   => __( 'Send a message', 'acreage' ),
-							'button_bg' => self::GREEN,
 						) ),
 					), 60 ),
 				),

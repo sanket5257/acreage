@@ -27,6 +27,40 @@
   --acreage-sans:"Helvetica Neue",Helvetica,"Segoe UI",Arial,sans-serif;
   --acreage-max:1440px;
   --acreage-gutter:clamp(20px,4vw,72px);
+
+  /* ------------------------------------------------------------ buttons
+     ONE definition for every button on the site.
+
+     Before these existed, five different rules each set their own padding,
+     size and letter-spacing: the page button was 12/26 at .82rem/.12em, the
+     outline button 15/28 at 12px/.16em, the search and filter buttons 12/26
+     at .14em, the enquiry button 13/30. Nothing lined up, and changing "the
+     button" meant finding and editing all five in three files.
+
+     Every button rule now reads these instead, so they are uniform by
+     construction and Appearance > Theme Options edits them in one place.
+     Each var() carries a fallback, because the plugin's stylesheet uses them
+     too and may run under a different theme. */
+  --acreage-btn-bg:#354027;
+  --acreage-btn-text:#F4F2EA;
+  --acreage-btn-hover-bg:#9C6423;
+  --acreage-btn-hover-text:#FFFFFF;
+  --acreage-btn-pad-y:13px;
+  --acreage-btn-pad-x:28px;
+  --acreage-btn-size:12px;
+  --acreage-btn-weight:700;
+  --acreage-btn-tracking:.14em;
+  --acreage-btn-transform:uppercase;
+  --acreage-btn-radius:0px;
+  --acreage-btn-border:0px;
+  /* Height is part of the contract, not something each button works out for
+     itself. Without these, identical padding still produced four different
+     heights — 40px on the enquiry button, 46px on the hero link, 50px on the
+     search bar, 54px on the filter button — because a <button> defaults to
+     line-height:normal, an <a> inherits the body's 1.65, and Elementor forces
+     its own. Fixing the line box and a minimum height makes them agree. */
+  --acreage-btn-line:1.4;
+  --acreage-btn-min-h:48px;
 }
 
 *,*::before,*::after{box-sizing:border-box;}
@@ -92,11 +126,88 @@ a:hover{color:var(--acreage-sienna);}
 
 /* --------------------------------------------------------- buttons + forms */
 .acreage-btn{
-  display:inline-block;background:var(--acreage-moss);color:#F4F2EA;text-decoration:none;
-  padding:12px 26px;border:0;font-size:.82rem;font-weight:700;letter-spacing:.12em;
-  text-transform:uppercase;cursor:pointer;transition:background .18s;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
+  display:inline-block;text-decoration:none;cursor:pointer;
+  background-color:var(--acreage-btn-bg,#354027);
+  color:var(--acreage-btn-text,#F4F2EA);
+  padding:var(--acreage-btn-pad-y,13px) var(--acreage-btn-pad-x,28px);
+  border:var(--acreage-btn-border,0px) solid var(--acreage-btn-bg,#354027);
+  border-radius:var(--acreage-btn-radius,0px);
+  font-family:inherit;
+  font-size:var(--acreage-btn-size,12px);
+  font-weight:var(--acreage-btn-weight,700);
+  letter-spacing:var(--acreage-btn-tracking,.14em);
+  text-transform:var(--acreage-btn-transform,uppercase);
+  transition:background .18s,color .18s,border-color .18s;
 }
-.acreage-btn:hover{background:var(--acreage-sienna);color:#fff;}
+.acreage-btn:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+  border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
+
+/* EVERY Elementor button, with no class needed.
+   Drag a Button widget onto a page and it should already look like the rest of
+   the site — that is what a customer expects from a theme, and what they get
+   from every other commercial theme. Requiring them to type a CSS class is not
+   a feature.
+   The class is repeated three times purely for weight. Elementor ships
+   .elementor-button.elementor-size-sm with its own padding and font-size at two
+   classes, so one or two of ours only wins if our stylesheet happens to load
+   later — and that stops being true the moment a caching or optimisation plugin
+   reorders things. Three classes settles it without !important, and still
+   leaves a colour the customer sets in Elementor itself on top, because that
+   generates a per-page rule with a higher weight again. */
+.elementor-button.elementor-button.elementor-button{
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
+  background-color:var(--acreage-btn-bg,#354027);
+  color:var(--acreage-btn-text,#F4F2EA);
+  padding:var(--acreage-btn-pad-y,13px) var(--acreage-btn-pad-x,28px);
+  border:var(--acreage-btn-border,0px) solid var(--acreage-btn-bg,#354027);
+  border-radius:var(--acreage-btn-radius,0px);
+  font-family:inherit;
+  font-size:var(--acreage-btn-size,12px);
+  font-weight:var(--acreage-btn-weight,700);
+  letter-spacing:var(--acreage-btn-tracking,.14em);
+  text-transform:var(--acreage-btn-transform,uppercase);
+  transition:background-color .18s,color .18s,border-color .18s;
+}
+.elementor-button.elementor-button.elementor-button:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+  border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
+
+/* The outline variant, chosen by putting acreage-btn-o in the widget's
+   Advanced > CSS Classes box — or by the demo, which sets it for you. */
+.acreage-btn-o .elementor-button.elementor-button.elementor-button,
+.acreage-cta--outline .elementor-button.elementor-button.elementor-button{
+  background-color:transparent;
+  color:var(--acreage-btn-bg,#354027);
+  border:1px solid var(--acreage-btn-bg,#354027);
+}
+.acreage-btn-o .elementor-button.elementor-button.elementor-button:hover,
+.acreage-cta--outline .elementor-button.elementor-button.elementor-button:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+  border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
+
+/* A dark ground. NOT a third button variant — it redefines the same variables
+   for its own subtree, so the primary and outline buttons keep their shapes and
+   simply invert. Any section can carry this class. */
+.acreage-on-dark{
+  --acreage-btn-bg:#E8E6DB;
+  --acreage-btn-text:#232B18;
+  --acreage-btn-hover-bg:#FFFFFF;
+  --acreage-btn-hover-text:#232B18;
+}
 .acreage-search{display:flex;gap:10px;margin:22px 0;flex-wrap:wrap;}
 .acreage-search input[type=search]{
   flex:1 1 240px;padding:12px 14px;border:1px solid var(--acreage-rule);
@@ -200,11 +311,28 @@ a:hover{color:var(--acreage-sienna);}
   background:#fff;font:inherit;font-size:.95rem;
 }
 .acreage-comments__form .submit{
-  background:var(--acreage-moss);color:#F4F2EA;border:0;cursor:pointer;
-  padding:12px 26px;font-size:.82rem;font-weight:700;letter-spacing:.12em;
-  text-transform:uppercase;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
+  cursor:pointer;
+  background-color:var(--acreage-btn-bg,#354027);
+  color:var(--acreage-btn-text,#F4F2EA);
+  padding:var(--acreage-btn-pad-y,13px) var(--acreage-btn-pad-x,28px);
+  border:var(--acreage-btn-border,0px) solid var(--acreage-btn-bg,#354027);
+  border-radius:var(--acreage-btn-radius,0px);
+  font-family:inherit;
+  font-size:var(--acreage-btn-size,12px);
+  font-weight:var(--acreage-btn-weight,700);
+  letter-spacing:var(--acreage-btn-tracking,.14em);
+  text-transform:var(--acreage-btn-transform,uppercase);
+  transition:background .18s,color .18s,border-color .18s;
 }
-.acreage-comments__form .submit:hover{background:var(--acreage-sienna);}
+.acreage-comments__form .submit:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+  border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
 .acreage-comments__form .comment-form-cookies-consent{
   display:flex;align-items:center;gap:10px;
 }
@@ -380,11 +508,29 @@ a:hover{color:var(--acreage-sienna);}
   color:var(--acreage-stone);margin-top:6px;
 }
 .acreage-nav__list a{font-size:13px;letter-spacing:.06em;color:#3C4A3F;}
+/* The header telephone chip. Its padding is deliberately smaller than a page
+   button — the comp's 10/17, and anything taller inflates the whole header bar —
+   but its colours and its hover come from the same contract, so it is the
+   primary variant at header scale rather than a third button with its own
+   ideas. */
 .acreage-nav__cta{
+  /* The header bar cannot carry a 48px chip without growing, so this lowers the
+     contract's height variable for itself instead of ignoring the contract. */
+  --acreage-btn-min-h:36px;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
   padding:10px 17px;font-size:12px;letter-spacing:.1em;font-weight:400;
-  background:var(--acreage-moss);color:var(--acreage-paper);border:0;
+  background-color:var(--acreage-btn-bg,#354027);
+  color:var(--acreage-btn-text,#F4F2EA);
+  border:0;
+  transition:background .18s,color .18s;
 }
-.acreage-nav__cta:hover{background:#232B18;color:var(--acreage-paper);}
+.acreage-nav__cta:hover{
+  background-color:var(--acreage-btn-hover-bg,#9C6423);
+  color:var(--acreage-btn-hover-text,#fff);
+}
 
 /* ================================================== hero — the comp gradient */
 /* Elementor's overlay control gives two colour stops. The comp uses four, and
@@ -759,4 +905,72 @@ a:hover{color:var(--acreage-sienna);}
     gap:10px;
   }
   .acreage-record__figure{font-size:40px;}
+}
+
+
+/* ============================================================ site footer
+   The footer is built in Elementor, so the columns and spacing come from the
+   builder. These rules cover the parts a text widget cannot express: the link
+   lists, the contact lines and the bottom bar.
+
+   Everything is written against the theme's own variables, so a customer who
+   changes the palette in Theme Options gets a footer that follows. */
+
+.acreage-f__tag{
+  margin:0 0 14px;
+  font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--acreage-stone,#8A8172);
+}
+
+/* Telephone and email as their own lines, tappable on a phone. */
+.acreage-f__contact{
+  display:block;
+  color:var(--acreage-ink-soft,#3C4A3F);
+  text-decoration:none;
+  line-height:1.9;
+}
+.acreage-f__contact:hover{color:var(--acreage-moss,#354027);text-decoration:underline;text-underline-offset:.2em;}
+
+/* A column of links. list-style is removed rather than left to the browser,
+   because Elementor's text editor widget re-applies a disc otherwise. */
+.acreage-f__nav{
+  list-style:none;
+  margin:0;padding:0;
+}
+.acreage-f__nav li{margin:0 0 7px;}
+.acreage-f__nav a{
+  color:var(--acreage-ink-soft,#3C4A3F);
+  text-decoration:none;
+}
+.acreage-f__nav a:hover{
+  color:var(--acreage-moss,#354027);
+  text-decoration:underline;text-underline-offset:.2em;
+}
+
+/* The provinces run to ten or more, so they split rather than making the
+   footer twice as tall as it needs to be. column-count keeps the source a
+   single list, which matters for a screen reader reading it in order. */
+.acreage-f__nav--split{
+  column-count:2;
+  column-gap:28px;
+}
+.acreage-f__nav--split li{break-inside:avoid;}
+
+/* The bottom bar: copyright left, the disclaimer right, one line on a desktop
+   and stacked on a phone. */
+.acreage-f__bottom{
+  display:flex;flex-wrap:wrap;gap:6px 28px;
+  align-items:baseline;justify-content:space-between;
+  margin:0;
+}
+
+@media (max-width:880px){
+  /* The provinces stay in two columns on a phone. Ten of them in a single
+     column adds roughly 300px of scrolling to reach the copyright, and the
+     names are short enough to sit side by side at any width worth supporting. */
+  .acreage-f__nav--split{column-gap:20px;}
+  .acreage-f__bottom{justify-content:flex-start;}
+}
+@media (max-width:360px){
+  .acreage-f__nav--split{column-count:1;}
 }

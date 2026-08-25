@@ -1279,6 +1279,38 @@ class Acreage_Demo_Import {
 	}
 
 	/** Apply a sample farm's figures and terms, when the plugin provides them. */
+	/**
+	 * A map query for a demo farm: "Region, Province, Country".
+	 *
+	 * The country is only appended for the nine South African provinces. The
+	 * province taxonomy also holds Namibia, and "Otjozondjupa, Namibia, South
+	 * Africa" sends the map somewhere that does not exist.
+	 *
+	 * @param array $listing One record from listing_definitions().
+	 * @return string
+	 */
+	private function map_location( $listing ) {
+		$sa = array(
+			'Eastern Cape', 'Free State', 'Gauteng', 'KwaZulu-Natal', 'Limpopo',
+			'Mpumalanga', 'North West', 'Northern Cape', 'Western Cape',
+		);
+
+		$parts = array_filter( array(
+			isset( $listing['region'] ) ? $listing['region'] : '',
+			isset( $listing['province'] ) ? $listing['province'] : '',
+		) );
+
+		if ( ! $parts ) {
+			return '';
+		}
+
+		if ( ! empty( $listing['province'] ) && in_array( $listing['province'], $sa, true ) ) {
+			$parts[] = __( 'South Africa', 'acreage' );
+		}
+
+		return implode( ', ', $parts );
+	}
+
 	private function dress_listing( $post_id, $listing ) {
 		if ( ! empty( $listing['excerpt'] ) ) {
 			wp_update_post( array( 'ID' => $post_id, 'post_excerpt' => $listing['excerpt'] ) );
@@ -1286,6 +1318,21 @@ class Acreage_Demo_Import {
 
 		update_post_meta( $post_id, 'acreage_price', $listing['price'] );
 		update_post_meta( $post_id, 'acreage_hectares', $listing['hectares'] );
+
+		/*
+		 * Where it is, for the map on the single farm page.
+		 *
+		 * Built from the region and province this sample already carries rather
+		 * than written out twelve more times: nothing to keep in agreement, and
+		 * a customer who renames a region gets a map that still points at the
+		 * right place. Left at the default zoom, which shows the district — a
+		 * demo farm should not look like it has published its front gate.
+		 */
+		$place = $this->map_location( $listing );
+
+		if ( $place ) {
+			update_post_meta( $post_id, 'acreage_map', $place );
+		}
 
 		if ( ! empty( $listing['big_five'] ) ) {
 			update_post_meta( $post_id, 'acreage_big_five', '1' );

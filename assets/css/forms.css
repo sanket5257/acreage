@@ -141,20 +141,23 @@
 .fluentform button[type="submit"],
 .fluentform .ff-btn-submit,
 .forminator-ui button[type="submit"] {
-  display: inline-block;
   width: auto;
-  border: 0;
-  border-radius: 0;
   cursor: pointer;
-  background: var(--acreage-moss, #354027);
-  color: #fff;
-  padding: 13px 30px;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  transition: background .2s ease;
+  display:inline-flex;align-items:center;justify-content:center;
+  line-height:var(--acreage-btn-line,1.4);
+  min-height:var(--acreage-btn-min-h,48px);
+  white-space:nowrap;
+  background-color:var(--acreage-btn-bg, #354027);
+  color: var(--acreage-btn-text, #F4F2EA);
+  padding: var(--acreage-btn-pad-y, 13px) var(--acreage-btn-pad-x, 28px);
+  border: var(--acreage-btn-border, 0px) solid var(--acreage-btn-bg, #354027);
+  border-radius: var(--acreage-btn-radius, 0px);
+  font-family: inherit;
+  font-size: var(--acreage-btn-size, 12px);
+  font-weight: var(--acreage-btn-weight, 700);
+  letter-spacing: var(--acreage-btn-tracking, .14em);
+  text-transform: var(--acreage-btn-transform, uppercase);
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
 
 .wpcf7 input[type="submit"]:hover,
@@ -166,7 +169,9 @@
 .fluentform button[type="submit"]:hover,
 .fluentform .ff-btn-submit:hover,
 .forminator-ui button[type="submit"]:hover {
-  background: var(--acreage-moss-deep, #232B18);
+  background-color:var(--acreage-btn-hover-bg, #9C6423);
+  color: var(--acreage-btn-hover-text, #fff);
+  border-color: var(--acreage-btn-hover-bg, #9C6423);
 }
 
 /* ---------------------------------------------------------------- messages */
