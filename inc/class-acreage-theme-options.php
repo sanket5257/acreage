@@ -386,6 +386,33 @@ class Acreage_Theme_Options {
 					'type'    => 'textarea',
 					'default' => '',
 				),
+
+				/*
+				 * Social profiles.
+				 *
+				 * Two fields rather than a repeater: an agency has the pages it
+				 * has, and a repeater would ask the customer to type a network
+				 * name, a URL and pick an icon to get the same two links. Empty
+				 * is the default and empty prints nothing, so a site with no
+				 * Instagram never shows a dead icon.
+				 *
+				 * Stored as full URLs, not handles. A handle looks tidier in the
+				 * field but forces the theme to guess the profile URL format,
+				 * and those change — pasting the address from the browser is the
+				 * one instruction that cannot be got wrong.
+				 */
+				'facebook'  => array(
+					'label'   => __( 'Facebook page', 'acreage' ),
+					'type'    => 'url',
+					'default' => '',
+					'help'    => __( 'Paste the full address, e.g. https://facebook.com/yourpage. Leave empty to hide the icon.', 'acreage' ),
+				),
+				'instagram' => array(
+					'label'   => __( 'Instagram profile', 'acreage' ),
+					'type'    => 'url',
+					'default' => '',
+					'help'    => __( 'Paste the full address, e.g. https://instagram.com/yourprofile. Leave empty to hide the icon.', 'acreage' ),
+				),
 			),
 		);
 
@@ -777,6 +804,16 @@ class Acreage_Theme_Options {
 					$value = sanitize_email( $value );
 					break;
 
+				/*
+				 * esc_url_raw() rather than sanitize_text_field(): it is the
+				 * function that drops javascript: and data: schemes, which is
+				 * the only thing that makes a customer-supplied address safe to
+				 * put in an href.
+				 */
+				case 'url':
+					$value = esc_url_raw( $value );
+					break;
+
 				case 'textarea':
 					$value = sanitize_textarea_field( $value );
 					break;
@@ -923,7 +960,12 @@ class Acreage_Theme_Options {
 						name="<?php echo esc_attr( $name ); ?>"><?php echo esc_textarea( $value ); ?></textarea>
 
 				<?php else : ?>
-					<input type="<?php echo 'email' === $field['type'] ? 'email' : 'text'; ?>"
+					<?php
+					// text, email and url share one input; the type only changes
+					// the on-screen keyboard and the browser's own validation.
+					$acreage_input_type = in_array( $field['type'], array( 'email', 'url' ), true ) ? $field['type'] : 'text';
+					?>
+					<input type="<?php echo esc_attr( $acreage_input_type ); ?>"
 						class="regular-text" id="<?php echo esc_attr( $id ); ?>"
 						name="<?php echo esc_attr( $name ); ?>"
 						value="<?php echo esc_attr( $value ); ?>">

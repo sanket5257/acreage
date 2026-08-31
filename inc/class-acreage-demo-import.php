@@ -268,13 +268,25 @@ class Acreage_Demo_Import {
 		$slots = array();
 
 		foreach ( $this->page_definitions() as $key => $page ) {
-			$id = $this->insert_post( array(
+			$args = array(
 				'post_type'    => 'page',
 				'post_title'   => $page['title'],
 				'post_content' => isset( $page['content'] ) ? $page['content'] : '',
 				'post_status'  => 'publish',
 				'menu_order'   => $page['order'],
-			) );
+			);
+
+			/*
+			 * A definition may pin its own slug. Only one page needs to so far —
+			 * the seller page, whose URL the client already has indexed — but
+			 * the title is what WordPress derives a slug from otherwise, so any
+			 * page whose URL matters more than its heading needs this.
+			 */
+			if ( ! empty( $page['slug'] ) ) {
+				$args['post_name'] = $page['slug'];
+			}
+
+			$id = $this->insert_post( $args );
 
 			if ( ! $id ) {
 				continue;
@@ -396,13 +408,23 @@ class Acreage_Demo_Import {
 		 *   About
 		 *   Contact
 		 *
+		 * Also add it to the footer's Agency column? No — the footer's "Farms"
+		 * column already carries it, and one link per destination is the rule
+		 * this footer is built on.
+		 *
 		 * No "Home" item — the wordmark is the home link, which is what the comp
 		 * does and what saves the row from wrapping on a laptop. Articles is
 		 * reachable from the footer rather than competing for space up top.
 		 */
+		/*
+		 * "Sell your farm" is a real page now, second in the row as the comp has
+		 * it. It used to be a custom link to the homepage's #sell anchor, which
+		 * was the best available before the page existed — and left behind, it
+		 * would put two "Sell your farm" items in the same menu.
+		 */
 		$primary_id = $this->build_menu(
 			__( 'AGF Primary', 'acreage' ),
-			array( $pages['farms'], $pages['about'], $pages['contact'] ),
+			array( $pages['farms'], $pages['sell'], $pages['about'], $pages['contact'] ),
 			$pages
 		);
 
@@ -415,15 +437,6 @@ class Acreage_Demo_Import {
 			if ( $farms_item ) {
 				$this->add_farm_submenu( $primary_id, $farms_item, $pages['farms'] );
 			}
-
-			// "Sell your farm" is an anchor on the homepage, not a page.
-			wp_update_nav_menu_item( $primary_id, 0, array(
-				'menu-item-title'    => __( 'Sell your farm', 'acreage' ),
-				'menu-item-url'      => home_url( '/#sell' ),
-				'menu-item-type'     => 'custom',
-				'menu-item-status'   => 'publish',
-				'menu-item-position' => 2,   // second, as in the comp
-			) );
 		}
 
 		$footer_id = $this->build_menu(
@@ -442,10 +455,12 @@ class Acreage_Demo_Import {
 		$content = get_option( 'acreage_home_content', array() );
 		$content = is_array( $content ) ? $content : array();
 		$content += array(
-			'phone'   => '+27 82 441 7118',
-			'fax'     => '086 618 0920',
-			'email'   => 'info@africagamefarms.co.za',
-			'tagline' => __( 'Game &amp; cattle farms for sale', 'acreage' ),
+			'phone'     => '+27 82 441 7118',
+			'fax'       => '086 618 0920',
+			'email'     => 'info@africagamefarms.co.za',
+			'tagline'   => __( 'Game &amp; cattle farms for sale', 'acreage' ),
+			'facebook'  => 'https://facebook.com/africagamefarms',
+			'instagram' => 'https://instagram.com/africagamefarms',
 		);
 		update_option( 'acreage_home_content', $content );
 
@@ -875,7 +890,7 @@ class Acreage_Demo_Import {
 			),
 			'about'      => array(
 				'title'    => __( 'About Us', 'acreage' ),
-				'order'    => 3,
+				'order'    => 4,
 				'template' => 'page-full-width.php',
 				'builder'  => 'build_about',
 				'menu'     => true,
@@ -885,7 +900,7 @@ class Acreage_Demo_Import {
 			),
 			'contact'    => array(
 				'title'    => __( 'Contact Us', 'acreage' ),
-				'order'    => 4,
+				'order'    => 5,
 				'template' => 'page-full-width.php',
 				'builder'  => 'build_contact',
 				'menu'     => true,
@@ -893,9 +908,26 @@ class Acreage_Demo_Import {
 					$this->h( __( 'Get in touch', 'acreage' ) ) .
 					$this->p( __( 'Peet Venter — +27 82 441 7118 — info@africagamefarms.co.za', 'acreage' ) ),
 			),
+			'sell'       => array(
+				'title'    => __( 'Sell Your Farm', 'acreage' ),
+				/*
+				 * The slug is pinned to the one the client's current site has
+				 * had indexed for years. The heading can be reworded freely;
+				 * this URL cannot, without losing the search traffic that
+				 * brings in the farms there are to sell.
+				 */
+				'slug'     => 'sell-my-farm',
+				'order'    => 3,
+				'template' => 'page-full-width.php',
+				'builder'  => 'build_sell',
+				'menu'     => true,
+				'content'  =>
+					$this->h( __( 'Selling a farm', 'acreage' ) ) .
+					$this->p( __( 'Send the province, the extent, the carrying capacity and what you are asking, and the owner will come back to you directly.', 'acreage' ) ),
+			),
 			'articles'   => array(
 				'title'    => __( 'Articles & News', 'acreage' ),
-				'order'    => 5,
+				'order'    => 6,
 				'template' => '',
 				'builder'  => 'build_articles',
 				'menu'     => true,
@@ -903,7 +935,7 @@ class Acreage_Demo_Import {
 			),
 			'disclaimer' => array(
 				'title'    => __( 'Agency Disclaimer', 'acreage' ),
-				'order'    => 6,
+				'order'    => 7,
 				'template' => 'page-full-width.php',
 				'builder'  => 'build_disclaimer',
 				'menu'     => false,   // Footer only, as on the client's current site.

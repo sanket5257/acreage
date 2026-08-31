@@ -364,3 +364,157 @@ function acreage_home_stats( $live ) {
 		),
 	);
 }
+
+/* ----------------------------------------------------------------- social */
+
+/**
+ * The agency's social profiles, in the order they are shown.
+ *
+ * WHY THIS IS A FUNCTION AND NOT MARKUP IN THE FOOTER
+ *
+ * There are two footers — the coded one in footer.php, for a site not using
+ * Elementor, and the one the kit builds. Both need the same links, and a second
+ * network added later must appear in both without anybody remembering there was
+ * a second place. So the list lives here and both callers read it.
+ *
+ * Entries with no URL configured are dropped, so a customer who only has a
+ * Facebook page gets one icon rather than one icon and a dead space.
+ *
+ * @return array[] key, label and url for each configured profile.
+ */
+function acreage_social_links() {
+	$networks = array(
+		'facebook'  => __( 'Facebook', 'acreage' ),
+		'instagram' => __( 'Instagram', 'acreage' ),
+	);
+
+	$links = array();
+
+	foreach ( $networks as $key => $label ) {
+		$url = acreage_option( $key );
+
+		if ( ! $url ) {
+			continue;
+		}
+
+		$links[] = array(
+			'key'   => $key,
+			'label' => $label,
+			'url'   => $url,
+		);
+	}
+
+	/**
+	 * Filter the social profiles the theme prints.
+	 *
+	 * A child theme adding a network supplies its own icon through
+	 * acreage_social_icon, below.
+	 *
+	 * @param array[] $links key, label, url.
+	 */
+	return apply_filters( 'acreage_social_links', $links );
+}
+
+/**
+ * The icon for one network.
+ *
+ * Inline SVG rather than an icon font or a sprite: two glyphs do not justify a
+ * font request, and inline means the mark takes the link's colour on hover with
+ * no extra rule. currentColor throughout, aria-hidden because the link already
+ * carries its name for a screen reader.
+ *
+ * @param string $key Network key.
+ * @return string SVG markup, or '' when the network is not one we draw.
+ */
+function acreage_social_icon( $key ) {
+	$paths = array(
+		'facebook'  => '<path d="M14 8.5h2V5.7h-2.3C11.1 5.7 10 7 10 9v1.6H8V13.4h2V19h2.8v-5.6h2l.4-2.8h-2.4V9.3c0-.6.2-.8.8-.8Z"/>',
+		'instagram' => '<path d="M8.6 4h6.8A4.6 4.6 0 0 1 20 8.6v6.8a4.6 4.6 0 0 1-4.6 4.6H8.6A4.6 4.6 0 0 1 4 15.4V8.6A4.6 4.6 0 0 1 8.6 4Zm0 1.7A2.9 2.9 0 0 0 5.7 8.6v6.8a2.9 2.9 0 0 0 2.9 2.9h6.8a2.9 2.9 0 0 0 2.9-2.9V8.6a2.9 2.9 0 0 0-2.9-2.9H8.6Zm7.3 1.3a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 1.7a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6Z"/>',
+	);
+
+	/**
+	 * Filter the icon drawn for a network.
+	 *
+	 * @param string $svg Path markup, without the wrapping <svg>.
+	 * @param string $key Network key.
+	 */
+	$path = apply_filters( 'acreage_social_icon_path', isset( $paths[ $key ] ) ? $paths[ $key ] : '', $key );
+
+	if ( ! $path ) {
+		return '';
+	}
+
+	/*
+	 * The width and height are a fallback only — the stylesheet sizes the glyph
+	 * from --acreage-social-glyph, and CSS beats a presentation attribute. They
+	 * are kept, and kept in step with it, so the mark is still the right size in
+	 * the moment before the stylesheet applies.
+	 */
+	return '<svg class="acreage-social__icon" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true" focusable="false">' . $path . '</svg>';
+}
+
+/**
+ * The social row, ready to print.
+ *
+ * @param string $class Extra class on the wrapper, so each footer can space it
+ *                      to its own layout without a second markup builder.
+ * @return string
+ */
+function acreage_social_html( $class = '' ) {
+	$links = acreage_social_links();
+
+	if ( ! $links ) {
+		return '';
+	}
+
+	$out = '<div class="acreage-social' . ( $class ? ' ' . esc_attr( $class ) : '' ) . '">';
+
+	foreach ( $links as $link ) {
+		$out .= sprintf(
+			/*
+			 * rel="noopener" because these open off-site; the accessible name is
+			 * on the link itself rather than in a title attribute, which screen
+			 * readers announce inconsistently and touch devices never show.
+			 */
+			'<a class="acreage-social__link acreage-social__link--%1$s" href="%2$s" rel="noopener" aria-label="%3$s">%4$s</a>',
+			esc_attr( $link['key'] ),
+			esc_url( $link['url'] ),
+			esc_attr( $link['label'] ),
+			acreage_social_icon( $link['key'] )
+		);
+	}
+
+	return $out . '</div>';
+}
+
+/**
+ * Where "Sell your farm" points.
+ *
+ * The dedicated page is the right destination, but it only exists on a site
+ * that has run the importer — and on one that has not, a link to /sell-my-farm/
+ * is a 404 in the footer of every page. So the page is asked for first and the
+ * homepage band is the fallback, which is where this link went before the page
+ * existed.
+ *
+ * Looked up by slug rather than stored as an ID: a customer who rebuilds the
+ * page, or renames it and lets WordPress keep the slug, keeps a working link,
+ * and an ID in an option would not survive either.
+ *
+ * @return string
+ */
+function acreage_sell_url() {
+	$page = get_page_by_path( 'sell-my-farm' );
+
+	if ( $page && 'publish' === $page->post_status ) {
+		return (string) get_permalink( $page );
+	}
+
+	/**
+	 * Filter the "sell your farm" destination.
+	 *
+	 * For a site whose seller page lives somewhere else entirely.
+	 *
+	 * @param string $url Fallback URL.
+	 */
+	return apply_filters( 'acreage_sell_url', home_url( '/#sell' ) );
+}

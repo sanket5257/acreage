@@ -52,6 +52,12 @@ defined( 'ABSPATH' ) || exit;
 						<div><a href="mailto:<?php echo esc_attr( $acreage_email ); ?>"><?php echo esc_html( $acreage_email ); ?></a></div>
 					<?php endif; ?>
 				</div>
+
+				<?php
+				// Prints nothing at all when neither profile is filled in.
+				// phpcs:ignore WordPress.Security.EscapeOutput -- acreage_social_html escapes every part it assembles.
+				echo acreage_social_html();
+				?>
 			</div>
 
 			<div>
