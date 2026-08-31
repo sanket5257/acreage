@@ -76,7 +76,27 @@ class Acreage_Elementor_Template {
 		return array(
 			'id'       => $this->id(),
 			'elType'   => 'column',
-			'settings' => array_merge( array( '_column_size' => $size, '_inline_size' => null ), $settings ),
+			/*
+			 * Columns carry padding too — the sell band's dark panel is 80/72 —
+			 * so they get the same responsive treatment as sections.
+			 *
+			 * And a column with no padding of its own gets an explicit zero
+			 * rather than Elementor's default 10px. That default is applied to
+			 * every column, but any column that sets its own padding overrides
+			 * it — so the kit had columns sitting on the section gutter and
+			 * columns sitting 10px inside it, on the same page. On the single
+			 * farm page that produced three different left edges: the hero at
+			 * 10px (in a full-bleed band that was supposed to have none), the
+			 * gallery and body at 32, and the aside card at 22.
+			 *
+			 * Zeroing it means every column starts on the section's gutter and
+			 * indentation is only ever something a caller asked for. Cards that
+			 * need inner padding — the aside, the filter panel — still set it.
+			 */
+			'settings' => $this->responsive_padding( array_merge(
+				array( '_column_size' => $size, '_inline_size' => null, 'padding' => $this->padding( 0, 0, 0, 0 ) ),
+				$settings
+			) ),
 			'elements' => $elements,
 			'isInner'  => false,
 		);
@@ -86,7 +106,7 @@ class Acreage_Elementor_Template {
 		return array(
 			'id'       => $this->id(),
 			'elType'   => 'section',
-			'settings' => $settings,
+			'settings' => $this->responsive_padding( $settings ),
 			'elements' => $columns,
 			'isInner'  => false,
 		);
@@ -100,6 +120,84 @@ class Acreage_Elementor_Template {
 			'right'    => (string) $right,
 			'bottom'   => (string) $bottom,
 			'left'     => (string) $left,
+			'isLinked' => false,
+		);
+	}
+
+	/**
+	 * Give every section and column a tablet and a mobile padding.
+	 *
+	 * THE BUG THIS EXISTS TO MAKE IMPOSSIBLE
+	 *
+	 * Elementor's padding control is per-device. A section given only a desktop
+	 * padding keeps that padding at every width — so a band set to 88px 72px,
+	 * which is right at 1440, was still 88px 72px on a 375px phone. That is
+	 * 144px of gutter on a 375px screen: 38% of the display spent on empty sand,
+	 * leaving 231px for the content. On the homepage it squeezed the category
+	 * tab strip into a 211px box and pushed the third tab out of sight.
+	 *
+	 * Thirty-four sections set a padding here and only thirteen set a mobile
+	 * one, so this was not one section that got missed — it was the default
+	 * outcome, and the next section anybody adds would have inherited it too.
+	 *
+	 * Deriving the two smaller steps centrally means a section CANNOT ship
+	 * without them. An explicit padding_tablet or padding_mobile in a caller
+	 * still wins: this only fills in what is absent.
+	 *
+	 * @param array $settings Section or column settings.
+	 * @return array
+	 */
+	private function responsive_padding( $settings ) {
+		if ( empty( $settings['padding'] ) || ! is_array( $settings['padding'] ) ) {
+			return $settings;
+		}
+
+		if ( ! isset( $settings['padding_tablet'] ) ) {
+			$settings['padding_tablet'] = $this->scale_padding( $settings['padding'], 0.72, 40 );
+		}
+
+		if ( ! isset( $settings['padding_mobile'] ) ) {
+			$settings['padding_mobile'] = $this->scale_padding( $settings['padding'], 0.55, 22 );
+		}
+
+		return $settings;
+	}
+
+	/**
+	 * A padding stepped down for a narrower screen.
+	 *
+	 * Vertical and horizontal are treated differently on purpose. Vertical space
+	 * is rhythm — it scales, so a band that breathed more than its neighbour at
+	 * 1440 still does at 375. Horizontal space is a gutter, and a gutter has a
+	 * sane maximum regardless of what the desktop uses: past about 22px on a
+	 * phone it stops being margin and starts being lost column.
+	 *
+	 * Zero stays zero, so the full-bleed bands — the sell panel, the hero — are
+	 * not given a gutter they were deliberately built without. Nothing is ever
+	 * scaled UP; a padding that is already small is already small enough.
+	 *
+	 * @param array $padding  Desktop padding.
+	 * @param float $factor   Vertical scale.
+	 * @param int   $max_side Ceiling for the left and right gutters.
+	 * @return array
+	 */
+	private function scale_padding( $padding, $factor, $max_side ) {
+		$step = function ( $key, $is_vertical ) use ( $padding, $factor, $max_side ) {
+			$value = isset( $padding[ $key ] ) ? (int) $padding[ $key ] : 0;
+
+			if ( $value <= 0 ) {
+				return '0';
+			}
+
+			return (string) ( $is_vertical ? (int) round( $value * $factor ) : min( $max_side, $value ) );
+		};
+
+		return array(
+			'unit'     => 'px',
+			'top'      => $step( 'top', true ),
+			'right'    => $step( 'right', false ),
+			'bottom'   => $step( 'bottom', true ),
+			'left'     => $step( 'left', false ),
 			'isLinked' => false,
 		);
 	}
@@ -747,7 +845,14 @@ class Acreage_Elementor_Template {
 							'#BFC6B6',
 							16
 						),
-						$this->button( __( 'List your farm', 'acreage' ), '#footer', 'primary', array(
+						/*
+						 * Points at the seller page now rather than at the
+						 * footer. Scrolling somebody to a telephone number was
+						 * the best this could do before the page existed; now
+						 * the button leads to the form that actually takes the
+						 * farm's details.
+						 */
+						$this->button( __( 'List your farm', 'acreage' ), acreage_sell_url(), 'primary', array(
 							'_element_custom_width' => 'yes',
 							'_element_width'        => 'initial',
 							'_inline_size'          => 'auto',
@@ -904,6 +1009,15 @@ class Acreage_Elementor_Template {
 			);
 		}
 
+		/*
+		 * The social row goes under the contact lines rather than in its own
+		 * column: two icons do not fill a quarter of a footer, and sitting them
+		 * beneath the telephone number keeps every way of reaching the agency in
+		 * one block. Empty when no profile is configured, and the text widget
+		 * then simply has one less line in it.
+		 */
+		$social = function_exists( 'acreage_social_html' ) ? acreage_social_html( 'acreage-social--footer' ) : '';
+
 		return array(
 			$this->section(
 				array(
@@ -911,7 +1025,8 @@ class Acreage_Elementor_Template {
 						$this->heading( get_bloginfo( 'name' ), 22, self::GREEN, 'div' ),
 						$this->text(
 							'<p class="acreage-f__tag">' . esc_html( get_bloginfo( 'description' ) ) . '</p>'
-							. implode( '', $contact ),
+							. implode( '', $contact )
+							. $social,
 							self::MUTED,
 							14
 						),
@@ -923,7 +1038,7 @@ class Acreage_Elementor_Template {
 							array( __( 'All farms for sale', 'acreage' ), $farms ),
 							array( __( 'Game farms', 'acreage' ), add_query_arg( 'listing_category', 'game-farms', $farms ) ),
 							array( __( 'Cattle farms', 'acreage' ), add_query_arg( 'listing_category', 'cattle-farms', $farms ) ),
-							array( __( 'Sell your farm', 'acreage' ), home_url( '/#sell' ) ),
+							array( __( 'Sell your farm', 'acreage' ), acreage_sell_url() ),
 						) ), self::MUTED, 14 ),
 					), 20 ),
 
@@ -1028,10 +1143,21 @@ class Acreage_Elementor_Template {
 		return array(
 			$this->section(
 				array(
+					/*
+					 * Zero padding so the masthead lines up with what it heads.
+					 *
+					 * Elementor gives every column a default 10px inner padding.
+					 * The two columns below override it — the filter card sets
+					 * its own, the farms column sets none — so the heading was
+					 * the only thing on this page still carrying it, sitting
+					 * 10px inboard of the filter card and the farms beneath it.
+					 * Small, and exactly the kind of misalignment that reads as
+					 * carelessness on a phone where everything is one column.
+					 */
 					$this->column( array(
 						$this->heading( __( 'Farms for sale', 'acreage' ), 40, self::DARK, 'h1' ),
 						$this->text( __( 'Filter by kind, province, size and price. Every combination is a linkable address.', 'acreage' ), self::MUTED ),
-					) ),
+					), 100, array( 'padding' => $this->padding( 0, 0, 0, 0 ) ) ),
 				),
 				array(
 					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
@@ -1062,7 +1188,32 @@ class Acreage_Elementor_Template {
 							'accent'       => self::OCHRE,
 						) ) ),
 						75,
-						array( 'padding' => $this->padding( 0, 0, 0, 36 ) )
+						array(
+							'padding' => $this->padding( 0, 0, 0, 36 ),
+							/*
+							 * The 36px on the left is the gap between the filter
+							 * sidebar and the farms — it exists to separate two
+							 * columns sitting side by side.
+							 *
+							 * Once they stack there is nothing to its left to be
+							 * separated from, so it stops being a gap and starts
+							 * being an indent: the farms sat 22px right of the
+							 * page heading with their right edge 22px past it.
+							 * Explicit zero on the left, because the derived
+							 * mobile padding only caps a gutter, and a gutter
+							 * that should not exist at all cannot be reached by
+							 * capping.
+							 *
+							 * The separation itself does not disappear when they
+							 * stack, it turns through ninety degrees — and
+							 * nothing was supplying it, so the results bar began
+							 * on the exact pixel the filter card ended and the
+							 * two read as one mis-drawn block. Hence 28px above,
+							 * which is the gap the filter card already keeps
+							 * from the intro paragraph over it.
+							 */
+							'padding_mobile' => $this->padding( 28, 0, 0, 0 ),
+						)
 					),
 				),
 				array(
@@ -1462,19 +1613,49 @@ class Acreage_Elementor_Template {
 		$email = acreage_option( 'email', '' );
 		$fax   = acreage_option( 'fax', '' );
 
-		$lines = array();
+		/*
+		 * A labelled list rather than three sentences run together with <br>.
+		 *
+		 * "Telephone +27 82 441 7118" as flat text made the reader parse a label
+		 * and a number out of one line, and neither the number nor the address
+		 * could be tapped — on a contact page, on a phone, which is most of this
+		 * page's traffic. Now the label sits above the value and the two things
+		 * worth acting on are links.
+		 *
+		 * The fax stays plain text. There is no useful href for one, and a link
+		 * that does nothing when tapped is worse than no link.
+		 */
+		$rows = array();
 
 		if ( $phone ) {
-			/* translators: %s: telephone number. */
-			$lines[] = sprintf( esc_html__( 'Telephone %s', 'acreage' ), esc_html( $phone ) );
-		}
-		if ( $fax ) {
-			/* translators: %s: fax number. */
-			$lines[] = sprintf( esc_html__( 'Fax %s', 'acreage' ), esc_html( $fax ) );
+			$rows[] = array(
+				__( 'Telephone', 'acreage' ),
+				$phone,
+				'tel:' . preg_replace( '/[^0-9+]/', '', $phone ),
+			);
 		}
 		if ( $email ) {
-			$lines[] = esc_html( $email );
+			$rows[] = array( __( 'Email', 'acreage' ), $email, 'mailto:' . $email );
 		}
+		if ( $fax ) {
+			$rows[] = array( __( 'Fax', 'acreage' ), $fax, '' );
+		}
+
+		$lines = '<dl class="acreage-contact__lines">';
+
+		foreach ( $rows as $row ) {
+			list( $label, $value, $href ) = $row;
+
+			$lines .= '<dt>' . esc_html( $label ) . '</dt><dd>'
+				. (
+					$href
+						? sprintf( '<a href="%s">%s</a>', esc_url( $href, array( 'tel', 'mailto', 'http', 'https' ) ), esc_html( $value ) )
+						: esc_html( $value )
+				)
+				. '</dd>';
+		}
+
+		$lines .= '</dl>';
 
 		return array(
 			$this->section(
@@ -1482,17 +1663,211 @@ class Acreage_Elementor_Template {
 					$this->column( array(
 						$this->eyebrow( __( 'Contact', 'acreage' ) ),
 						$this->heading( acreage_option( 'contact_title', __( 'Talk to the owner, not a call centre.', 'acreage' ) ), 40, self::DARK, 'h1' ),
-						$this->text( implode( '<br>', $lines ), '#5A5F52', 16 ),
-					), 40 ),
+						$this->text( $lines, '#5A5F52', 16 ),
+						/*
+						 * The photograph is here to fill the column, not to
+						 * decorate the page.
+						 *
+						 * The form is tall and the contact details are three
+						 * lines, so this column ran out of content half way down
+						 * and left roughly five hundred pixels of empty sand
+						 * beside the message box — which is what made the page
+						 * read as unfinished rather than as calm.
+						 *
+						 * Landscape rather than a portrait of the agent: this is
+						 * the country being sold, it dates far more slowly than
+						 * a photograph of a person, and it is the only image on
+						 * the page so it has to carry the whole register.
+						 */
+						$this->widget( 'image', array(
+							'image'      => array( 'url' => $this->image( 'farm-05.jpg' ), 'id' => '' ),
+							'image_size' => 'full',
+						) ),
+					), 40, array( 'css_classes' => 'acreage-contact__copy' ) ),
 					$this->column( array(
+						/*
+						 * The only enquiry form on the site with no farm behind
+						 * it, so it is the one place the subject and the
+						 * "Regarding" dropdown earn their keep — without them
+						 * every message from this page arrives titled with the
+						 * site's own name.
+						 */
 						$this->widget( 'acreage-enquiry-form', array(
-							'heading'   => __( 'Send a message', 'acreage' ),
+							'heading'        => __( 'Send a message', 'acreage' ),
+							'show_subject'   => 'yes',
+							'show_regarding' => 'yes',
 						) ),
 					), 60 ),
 				),
 				array(
+					'css_classes'   => 'acreage-cols',
 					'content_width' => array( 'unit' => 'px', 'size' => 1440 ),
 					'padding'       => $this->padding( 88, 72, 88, 72 ),
+				)
+			),
+		);
+	}
+
+	/**
+	 * Sell your farm.
+	 *
+	 * WHY THIS IS A PAGE AND NOT THE HOMEPAGE BAND IT USED TO BE
+	 *
+	 * The homepage already carries a "Selling a farm?" section, and the footer
+	 * used to link to it as /#sell. That is fine as a prompt to somebody already
+	 * reading the homepage, and useless to everybody else: an anchor is not a
+	 * URL a search engine can rank, cannot be linked to from an advert, and
+	 * cannot carry a title or a description of its own.
+	 *
+	 * A seller looking for an agent does not browse a farms site — they search
+	 * for "sell my game farm". That query needs somewhere to land. The client's
+	 * current site has had /sell-my-farm/ indexed for years, which is the whole
+	 * reason it still gets seller enquiries, and dropping it in a redesign would
+	 * quietly cost them the supply side of the business.
+	 *
+	 * The band on the homepage stays — it now points here rather than at the
+	 * footer, so the two are one funnel instead of two dead ends.
+	 *
+	 * The form is the page. Their current version ends in "phone Peet", which
+	 * loses everybody who is browsing at eleven at night, and it asks for none
+	 * of the four things needed to value a farm — so the copy beside the form
+	 * says exactly what to send, and the form is preset to "Selling a farm" so
+	 * the enquiry lands already sorted.
+	 */
+	public function build_sell() {
+		$phone = acreage_option( 'phone', '' );
+
+		return array(
+
+			/* -------------------------------------------------- 1. the opening */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Sell a farm', 'acreage' ) ),
+						$this->heading(
+							acreage_option( 'sell_page_title', __( 'List your farm with the person who will sell it.', 'acreage' ) ),
+							44,
+							self::DARK,
+							'h1'
+						),
+						$this->text(
+							acreage_option(
+								'sell_page_body',
+								$this->pp( __( 'Every farm on this site was listed by the same person, and that is who reads this form. There is no branch to be passed to and no junior to call you back — the reply comes from the person who will walk the property and write the advertisement.', 'acreage' ) ) .
+								$this->pp( __( 'Send what you have. A conversation can start from a province, an extent and a price; the photographs and the paperwork can follow.', 'acreage' ) )
+							),
+							'#5A5F52',
+							17
+						),
+					), 55, array( 'css_classes' => 'acreage-about__copy' ) ),
+					$this->column( array(
+						$this->widget( 'image', array(
+							'image'      => array( 'url' => $this->image( 'farm-04.jpg' ), 'id' => '' ),
+							'image_size' => 'full',
+						) ),
+					), 45, array( 'css_classes' => 'acreage-about__media' ) ),
+				),
+				array(
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 88, 72, 72, 72 ),
+					'padding_mobile' => $this->padding( 48, 22, 40, 22 ),
+				)
+			),
+
+			/* --------------------------------------------- 2. why list here */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'Why here', 'acreage' ) ),
+						$this->heading( __( 'A small audience of the right people.', 'acreage' ), 34, self::DARK ),
+						$this->widget( 'html', array(
+							'html' =>
+								'<div class="acreage-pillars">' .
+								$this->pillar(
+									__( 'Buyers who came looking', 'acreage' ),
+									__( 'Nobody arrives here by accident. The traffic is people searching for a game or cattle farm to buy, from South Africa and from well beyond it — which is a smaller number than a general property portal and a far better one.', 'acreage' )
+								) .
+								$this->pillar(
+									__( 'Listed properly, once', 'acreage' ),
+									__( 'Extent, carrying capacity, water, improvements, species and land claim status all have their own place on a listing. A farm described in full is a farm that stops being asked the same four questions.', 'acreage' )
+								) .
+								$this->pillar(
+									__( 'Photographed from the air', 'acreage' ),
+									__( 'Camps, water and access are almost impossible to read from the ground. Drone photography is flown wherever the terrain allows, and it is what turns an enquiry into a viewing.', 'acreage' )
+								) .
+								'</div>',
+						) ),
+					) ),
+				),
+				array(
+					'css_classes'    => 'acreage-about',
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 0, 72, 80, 72 ),
+					'padding_mobile' => $this->padding( 0, 22, 48, 22 ),
+				)
+			),
+
+			/* ------------------------------------------- 3. what to send + form */
+			$this->section(
+				array(
+					$this->column( array(
+						$this->eyebrow( __( 'What to send', 'acreage' ) ),
+						$this->heading( __( 'Four things start the conversation.', 'acreage' ), 34, self::DARK ),
+						$this->text(
+							/*
+							 * A list, not a paragraph. A seller reading this on a
+							 * phone is deciding whether they can answer it now or
+							 * have to go and find something first — four lines
+							 * they can scan says "now", and a paragraph does not.
+							 */
+							'<ul class="acreage-sell__list">'
+							. '<li>' . esc_html__( 'Where it is — province and nearest town.', 'acreage' ) . '</li>'
+							. '<li>' . esc_html__( 'How big it is, in hectares.', 'acreage' ) . '</li>'
+							. '<li>' . esc_html__( 'Carrying capacity, or roughly what game is on it.', 'acreage' ) . '</li>'
+							. '<li>' . esc_html__( 'What you are asking, or what you hope to get.', 'acreage' ) . '</li>'
+							. '</ul>'
+							. $this->pp( esc_html__( 'Photographs, a title deed number and a game count all help, and none of them are needed to send this form. Nothing goes on the site without your say-so.', 'acreage' ) )
+							. (
+								$phone
+									/* translators: %s: telephone number. */
+									? $this->pp( sprintf( esc_html__( 'If you would rather talk it through, the number is %s.', 'acreage' ), esc_html( $phone ) ) )
+									: ''
+							),
+							'#5A5F52',
+							16
+						),
+						/*
+						 * 40/60, NOT 42/58.
+						 *
+						 * Elementor ships a fixed set of .elementor-col-NN rules
+						 * and nothing outside it. A column asked for 42 gets the
+						 * class .elementor-col-42, no rule matches it, and the
+						 * column falls back to its content width — which put the
+						 * copy at 1175px and squeezed this form to 217px. Stick
+						 * to the widths Elementor's own presets use: 100, 50,
+						 * 33/66, 25/75, 20/40/60/80, 30/70, 55/45.
+						 */
+					), 40 ),
+					$this->column( array(
+						$this->widget( 'acreage-enquiry-form', array(
+							'heading'           => __( 'Tell us about the farm', 'acreage' ),
+							'show_subject'      => 'yes',
+							'show_regarding'    => 'yes',
+							// The visitor said this by being on this page.
+							'regarding_default' => __( 'Selling a farm', 'acreage' ),
+							'button_text'       => __( 'Send the details', 'acreage' ),
+							'success_text'      => __( 'Thank you — the details are on their way, and you will hear back directly from the owner rather than from an office.', 'acreage' ),
+						) ),
+					), 60 ),
+				),
+				array(
+					'css_classes'    => 'acreage-cols',
+					'content_width'  => array( 'unit' => 'px', 'size' => 1440 ),
+					'padding'        => $this->padding( 80, 72, 88, 72 ),
+					'padding_mobile' => $this->padding( 48, 22, 48, 22 ),
+					'border_border'  => 'solid',
+					'border_width'   => array( 'unit' => 'px', 'top' => '1', 'right' => '0', 'bottom' => '0', 'left' => '0', 'isLinked' => false ),
+					'border_color'   => self::RULE,
 				)
 			),
 		);

@@ -110,7 +110,13 @@ a:hover{color:var(--acreage-sienna);}
 .acreage-article__media img{width:100%;}
 
 /* ------------------------------------------------------------------- cards */
-.acreage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:34px;}
+/* min(320px,100%) rather than a bare 320px: a minmax whose MINIMUM is wider
+   than the container cannot shrink to fit it, so on a 320px phone — where the
+   content box is 257px after gutters — the article cards ran 39px off the side
+   of the screen and took the page's horizontal scrollbar with them. Wrapping
+   the minimum in min() lets the track collapse to the container when there is
+   less room than the ideal card width, and changes nothing above that. */
+.acreage-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr));gap:34px;}
 .acreage-card{background:#fff;border:1px solid var(--acreage-rule);transition:transform .2s ease,box-shadow .2s ease;}
 .acreage-card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(31,42,33,.10);}
 .acreage-card__link{text-decoration:none;color:inherit;display:block;height:100%;}
@@ -182,6 +188,30 @@ a:hover{color:var(--acreage-sienna);}
   background-color:var(--acreage-btn-hover-bg,#9C6423);
   color:var(--acreage-btn-hover-text,#fff);
   border-color:var(--acreage-btn-hover-bg,#9C6423);
+}
+
+/* Two buttons side by side need a gap in BOTH directions.
+
+   Elementor spaces inline-width widgets with a right margin only. That reads
+   correctly while the pair sits on one line, and the moment the panel is too
+   narrow to hold both — which is every phone, and the tablet width too — the
+   second button wraps underneath with the gap still pointing sideways. On the
+   homepage's "Selling a farm?" panel the two buttons ended up sharing an edge:
+   "List your farm" bottom at 6669, "Ask a question" top at 6669, touching to
+   the pixel, so a solid button and an outlined one read as one welded control.
+
+   :not(:last-child) rather than a media query, because the width at which they
+   wrap depends on how long the customer's button wording is — there is no
+   breakpoint that is correct for every site. The last button in a group never
+   gets the margin, so a lone CTA is untouched.
+
+   The class is repeated to reach 0-4-0. Elementor writes each widget's own
+   margin as ".elementor-1832 .elementor-element.elementor-element-c778716",
+   which is 0-3-0 and loads after this file, so a single .acreage-cta lost the
+   cascade and the buttons stayed welded together. Same technique the header bar
+   uses lower down, and it keeps a child theme able to override normally. */
+.acreage-cta.acreage-cta.acreage-cta:not(:last-child){
+  margin-bottom:12px;
 }
 
 /* The outline variant, chosen by putting acreage-btn-o in the widget's
@@ -531,6 +561,20 @@ a:hover{color:var(--acreage-sienna);}
   background-color:var(--acreage-btn-hover-bg,#9C6423);
   color:var(--acreage-btn-hover-text,#fff);
 }
+/* ...but only while it IS a chip in a bar.
+
+   Inside the burger panel it is a full-width row with nothing above or below to
+   inflate, so the reason for the 36px ceiling has gone — and 36px is under the
+   44px a thumb needs. The contract's own variable is raised back rather than
+   the height being set directly, so a customer who changes the button height
+   still reaches this. This has to live in theme.css because theme.css is the
+   last stylesheet to load and would otherwise win. */
+@media (max-width:900px){
+  .acreage-nav__panel .acreage-nav__cta{
+    --acreage-btn-min-h:44px;
+    padding:12px 20px;
+  }
+}
 
 /* ================================================== hero — the comp gradient */
 /* Elementor's overlay control gives two colour stops. The comp uses four, and
@@ -570,15 +614,39 @@ a:hover{color:var(--acreage-sienna);}
 /* The hero's inset lives on the container, not the section — see the note in
    class-acreage-elementor-template.php::hero(). Section padding would be added
    outside Elementor's min-height and blow the comp's 700px band out to 894. */
-/* Vertical inset only. The container is already capped at 1440 and centred, so
-   horizontal padding here would indent the hero 72px further than every other
-   section — five different left edges was exactly the wide-screen symptom. */
+/* Horizontal inset above 1024 only, because below it the SECTION already has one.
+
+   This used to be vertical-only at every width, on the reasoning that the
+   container is capped at --acreage-max and centred, so a 72px gutter would
+   indent the hero further than every other section. That is true on a monitor
+   wider than the cap — and only there. --acreage-max resolves to 1440, the most
+   common laptop width there is: at exactly 1440 the cap creates no margin at
+   all and the headline sat hard against the left edge of the screen. From 1025
+   to 1440 the same. The hero is the first thing anyone sees on the site.
+
+   Below 1025 the hero section carries its own 40px and 22px gutters, so the
+   container must stay at zero there or the two stack and the hero ends up
+   indented twice as far as the farms beneath it — 44px against 22px, which is
+   how this first went wrong.
+
+   Above 1024 the gutter is added to the CAP as well as to the padding, so a
+   monitor wider than 1440 is completely unaffected: the container grows by the
+   two gutters and the text sits exactly where it did, 232px in from a 1920
+   screen. At 1440 and below, it becomes real space and the hero lines up with
+   every section under it. */
 .acreage-hero > .elementor-container{
-  padding:44px 0 150px;
+  --acreage-hero-gutter:72px;
+  max-width:calc(var(--acreage-max) + (2 * var(--acreage-hero-gutter)));
+  padding:44px var(--acreage-hero-gutter) 150px;
   box-sizing:border-box;
 }
 @media (max-width:1024px){
-  .acreage-hero > .elementor-container{padding:32px 0 110px;}
+  .acreage-hero > .elementor-container{
+    /* The section's own padding takes over from here down. */
+    --acreage-hero-gutter:0px;
+    max-width:var(--acreage-max);
+    padding:32px 0 110px;
+  }
 }
 @media (max-width:767px){
   .acreage-hero > .elementor-container{padding:26px 0 84px;}
@@ -710,6 +778,13 @@ a:hover{color:var(--acreage-sienna);}
    not smaller type. */
 
 .acreage-about__copy .elementor-widget-text-editor p{max-width:52ch;}
+/* h1 as well as h2. The about and sell pages both open with a 44px h1 in this
+   column, and with nothing capping it the line ran the full 55% — 55 characters
+   of display serif on one line on the sell page, which is roughly twice the
+   measure the rest of the site's headings are set to and made the opening read
+   as a sentence rather than as a title. 26ch holds it to two lines at the
+   widths this column is ever given. */
+.acreage-about__copy h1,
 .acreage-about__copy h2{max-width:26ch;}
 
 /* The photograph fills its half and crops rather than letterboxing. */
@@ -843,6 +918,135 @@ a:hover{color:var(--acreage-sienna);}
   .acreage-pillars{border-top-width:0;}
 }
 
+/* ================================== Copy beside a form — the gutter between
+
+   Applied to the two 40/60 sections that put a column of copy next to an
+   enquiry form: the contact page, and "What to send" on the sell page.
+
+   Every column in this build is zeroed to the section gutter (see the column
+   helper in the Elementor template — a 10px default applied unevenly was giving
+   the single farm page three different left edges). That is right for one
+   column of prose and wrong for two side by side: with no padding on either,
+   the contact page's photograph ended exactly where the form began, and on the
+   sell page the copy was long enough to overrun its column and print across the
+   form's Subject field.
+
+   The gutter goes on the container as a column-gap rather than as padding on
+   the columns, so the outer edges stay flush with everything above and below
+   and only the seam between the two opens up. The 40/60 split is then re-based
+   on what is left, or the two percentages add up to more than the row and the
+   form wraps underneath.
+
+   Only the 40/60 pair is re-based because that is the only pair wearing this
+   class. Elementor ships a fixed set of .elementor-col-NN rules and nothing
+   outside it, so any other split needs its own two lines here. */
+.acreage-cols{--acreage-cols-gap:clamp(32px,4.5vw,64px);}
+.acreage-cols > .elementor-container{
+  column-gap:var(--acreage-cols-gap);
+}
+@media (min-width:1025px){
+  .acreage-cols > .elementor-container > .elementor-col-40{
+    width:calc(40% - var(--acreage-cols-gap) * .4);
+  }
+  .acreage-cols > .elementor-container > .elementor-col-60{
+    width:calc(60% - var(--acreage-cols-gap) * .6);
+  }
+}
+
+/* Stacked at 1024, not at Elementor's 767.
+
+   The contact photograph below already assumed the columns were stacked by
+   1024, but Elementor only stacks them at 767 — so between those two widths the
+   page had the tablet crop of the image inside a column still standing beside
+   the form. At 900px that column is 322px wide, which is narrower than the
+   form's own input, and the heading was breaking across four lines to fit it.
+
+   row-gap rather than a margin on the second column: the same declaration is
+   doing nothing when the two are side by side, so there is no rule to undo at
+   the breakpoint. */
+@media (max-width:1024px){
+  .acreage-cols > .elementor-container{
+    row-gap:clamp(40px,6vw,56px);
+  }
+  .acreage-cols > .elementor-container > .elementor-column{width:100%;}
+}
+
+/* ================================================= Contact page — details
+
+   Label above value, in the same uppercase-hairline register the footer and the
+   form labels already use, so the block reads as part of the system rather than
+   as a paragraph that happens to contain a telephone number. */
+.acreage-contact__lines{
+  margin:0 0 clamp(28px,3.5vw,44px);
+}
+.acreage-contact__lines dt{
+  font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+  color:var(--acreage-stone,#8A8172);
+  margin:0 0 4px;
+}
+.acreage-contact__lines dd{
+  margin:0 0 18px;
+  font-size:17px;
+  line-height:1.5;
+}
+.acreage-contact__lines dd:last-child{margin-bottom:0;}
+/* No resting underline. A hairline under a telephone number at this size reads
+   as a spell-check squiggle rather than as a link, and it only ever appeared
+   under the address — the number is a link too, so the two lines disagreed
+   about what they were. Underlining on hover only is what the footer's contact
+   lines already do. */
+.acreage-contact__lines a{
+  color:var(--acreage-ink-soft,#3C4A3F);
+  text-decoration:none;
+}
+.acreage-contact__lines a:hover{
+  color:var(--acreage-moss,#354027);
+  text-decoration:underline;
+  text-underline-offset:.2em;
+}
+
+/* The one photograph on the page. Given a height rather than left at its own
+   aspect ratio: its job is to reach the foot of the form beside it, and a 3:2
+   image in a 40% column stops about half way there. object-fit means the crop
+   holds the river in frame at every width.
+
+   The ceiling is 345px, not the 430 it started at. At 430 the picture ran 90px
+   past the bottom of the send button, which put the heavier element of the two
+   columns on the side with less in it. Landing level with the button is what
+   makes the pair read as one block. */
+.acreage-contact__copy .elementor-widget-image img{
+  width:100%;
+  height:clamp(240px,26vw,345px);
+  object-fit:cover;
+  display:block;
+}
+
+/* Below the breakpoint the columns stack, the form is no longer beside it and
+   there is no height left to match — so the photograph goes back to being a
+   photograph rather than a tall crop. */
+@media (max-width:1024px){
+  .acreage-contact__copy .elementor-widget-image img{height:clamp(200px,42vw,300px);}
+}
+
+/* ========================================== Sell page — what to send list
+
+   The four things a seller has to supply before a farm can be valued. Marked
+   up as a list because it is one, and given a rule per item rather than a
+   bullet: bullets in a serif-and-sand palette read as a software changelog,
+   and the hairline is the divider this site already uses everywhere else. */
+.acreage-sell__list{
+  list-style:none;
+  margin:0 0 22px;
+  padding:0;
+}
+.acreage-sell__list li{
+  padding:12px 0;
+  border-top:1px solid var(--acreage-rule,#DED5C0);
+  font-size:16px;
+  line-height:1.6;
+}
+.acreage-sell__list li:last-child{border-bottom:1px solid var(--acreage-rule,#DED5C0);}
+
 /* Elementor's HTML widget shrink-wraps its content, so the statistics band
    collapsed to its intrinsic width and centred at 2x2 instead of running the
    content width at 4 across. */
@@ -930,6 +1134,105 @@ a:hover{color:var(--acreage-sienna);}
   line-height:1.9;
 }
 .acreage-f__contact:hover{color:var(--acreage-moss,#354027);text-decoration:underline;text-underline-offset:.2em;}
+
+/* Social profiles.
+
+   One rule set for both footers — the coded one in footer.php and the one the
+   Elementor kit builds — because acreage_social_html() emits the same markup to
+   each. The modifier class only changes the space above.
+
+   The tap target is 36px square rather than the 18px glyph: a link the size of
+   its icon is a link most thumbs miss, and the padding costs nothing visually
+   because the box is transparent until hover. */
+.acreage-social{
+  /* Two numbers, and everything else is derived from them.
+
+     The mark itself was 18px in a 36px box, which is smaller than the 14px
+     telephone number sitting directly above it — a Facebook "f" at 18px next to
+     a full line of type reads as an afterthought rather than as a link. 22px is
+     the size at which the glyph carries the same weight as the text beside it.
+
+     The box grows with it so the icon keeps its breathing room inside the
+     circle that appears on hover. */
+  --acreage-social-glyph:22px;
+  --acreage-social-box:40px;
+
+  display:flex;
+  gap:6px;
+  margin-top:14px;
+
+  /* The link is wider than the mark you can actually see, so its left edge sits
+     outside it and the row looks indented against the telephone number above.
+     Deriving the pull from the two sizes rather than hard-coding it means the
+     first glyph stays on the column's text edge whatever they are changed to —
+     which is what went wrong before, when the box changed and a literal -9px
+     stayed behind. */
+  margin-left:calc((var(--acreage-social-glyph) - var(--acreage-social-box)) / 2);
+}
+.acreage-social--footer{margin-top:16px;}
+
+.acreage-social__link{
+  display:inline-flex;
+  align-items:center;justify-content:center;
+  width:var(--acreage-social-box);height:var(--acreage-social-box);
+  border-radius:50%;
+  color:var(--acreage-ink-soft,#3C4A3F);
+  text-decoration:none;
+  transition:color .18s ease,background-color .18s ease;
+}
+.acreage-social__link:hover,
+.acreage-social__link:focus-visible{
+  color:var(--acreage-paper,#F4F2EA);
+  background:var(--acreage-moss,#354027);
+}
+
+/* The glyph is a child of the link and inherits its colour, so nothing here
+   sets a colour of its own — a palette change in Theme Options reaches it.
+   Sized in CSS rather than left to the SVG's width attribute, so the one
+   variable above governs it. */
+.acreage-social__icon{
+  display:block;
+  width:var(--acreage-social-glyph);
+  height:var(--acreage-social-glyph);
+}
+
+/* Space between the footer's groups once they stack.
+
+   At full width these are four columns side by side and the gap between them is
+   horizontal, so no vertical space is needed. Stacked on a phone that gap
+   disappears entirely: "Sell your farm" ran straight into the AGENCY heading
+   below it, and the four groups read as one undifferentiated list of eighteen
+   links. The rule only applies from the second column on, so the brand block at
+   the top keeps its position. */
+@media (max-width:767px){
+  .acreage-f .elementor-column + .elementor-column{
+    margin-top:32px;
+  }
+}
+
+/* ============================================ touch targets in the footer
+
+   The footer's links are the smallest standalone controls on the site: the
+   telephone number and address are single lines at 27px, the column links at
+   25, and the social icons at 36. All of them are things somebody taps rather
+   than reads past, and none of them reached 44.
+
+   Keyed on the pointer so a mouse-driven layout is untouched — this only opens
+   the footer up on the devices where a fingertip is doing the aiming. Inline
+   links inside prose are left alone; those are exempt from the target-size
+   rules for good reason, and padding them would break the paragraphs. */
+@media (pointer:coarse){
+  .acreage-f__contact,
+  .acreage-f__nav a,
+  .acreage-contact__lines a{
+    min-height:44px;
+    display:flex;align-items:center;
+  }
+  /* Only the box grows for touch — the glyph is already the right size, it just
+     needs a bigger target around it. The pull recalculates itself from the two
+     variables, so nothing else here has to change. */
+  .acreage-social{--acreage-social-box:48px;}
+}
 
 /* A column of links. list-style is removed rather than left to the browser,
    because Elementor's text editor widget re-applies a disc otherwise. */
