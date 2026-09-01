@@ -4,7 +4,7 @@ Contributors: sanket
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: custom-menu, featured-images, translation-ready, right-sidebar, block-styles, wide-blocks, rtl-language-support, threaded-comments, accessibility-ready
@@ -184,6 +184,12 @@ You can, but use the child theme instead — a parent update overwrites direct
 edits. See documentation/child-themes.
 
 == Changelog ==
+
+= 1.0.1 =
+* Footer social profile links, set under Appearance > Theme Options.
+* Layout: consistent gutters between paired columns, a readable measure on
+  headings, and tightened archive spacing.
+* No action needed on existing sites.
 
 = 1.0.0 =
 * Initial release.
