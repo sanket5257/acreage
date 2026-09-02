@@ -21,7 +21,26 @@ if ( acreage_do_location( 'archive' ) ) {
 <div class="acreage-sec acreage-pad">
 	<div class="acreage-sec__head">
 		<div>
-			<h1 class="acreage-h2"><?php post_type_archive_title(); ?></h1>
+			<h1 class="acreage-h2">
+				<?php
+				/*
+				 * search.php hands a farm keyword search to this template, so
+				 * that a search lands on the page with the filters on it rather
+				 * than on the generic list. The heading has to say which of the
+				 * two it is: "Farms for Sale" over eleven results for "kudu"
+				 * reads as the whole archive having quietly lost fifty farms.
+				 */
+				if ( is_search() ) {
+					printf(
+						/* translators: %s: the keyword searched for. */
+						esc_html__( 'Results for “%s”', 'acreage' ),
+						esc_html( get_search_query() )
+					);
+				} else {
+					post_type_archive_title();
+				}
+				?>
+			</h1>
 			<p class="acreage-sub">
 				<?php
 				global $wp_query;
