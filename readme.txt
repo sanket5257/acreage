@@ -4,7 +4,7 @@ Contributors: sanket
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.0.1
+Stable tag: 1.1.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: custom-menu, featured-images, translation-ready, right-sidebar, block-styles, wide-blocks, rtl-language-support, threaded-comments, accessibility-ready
@@ -184,6 +184,22 @@ You can, but use the child theme instead — a parent update overwrites direct
 edits. See documentation/child-themes.
 
 == Changelog ==
+
+= 1.1.0 =
+* Species chips on a listing show a Wikipedia photograph and description on
+  hover, cached on your own server. Set the article, or turn one off, under
+  Farms > Species.
+* A search in the header, and a keyword search that reads the whole farm --
+  improvements, wildlife, land claims, location and every filter term, not
+  just the name and description. Sizes and prices work as words: "2 600 ha",
+  "over 2000 ha", "R33m", "under R20m".
+* Search results now open on the Farms for Sale page with the filters and sort
+  beside them, instead of a plain list.
+* Galleries of more than eight photographs become one row that scrolls
+  sideways; on a phone every gallery does.
+* Fixed: page links stayed on screen after a live filter and, when followed,
+  dropped the filter the visitor had chosen.
+* No action needed on existing sites.
 
 = 1.0.1 =
 * Footer social profile links, set under Appearance > Theme Options.
