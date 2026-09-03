@@ -4,7 +4,7 @@ Contributors: sanket
 Requires at least: 6.0
 Tested up to: 6.7
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Tags: custom-menu, featured-images, translation-ready, right-sidebar, block-styles, wide-blocks, rtl-language-support, threaded-comments, accessibility-ready
@@ -184,6 +184,24 @@ You can, but use the child theme instead — a parent update overwrites direct
 edits. See documentation/child-themes.
 
 == Changelog ==
+
+= 1.2.0 =
+* The farms archive base is now yours to set, on Settings > Permalinks under
+  "Farm permalinks". Saving there rebuilds the rewrite rules in the same
+  press, so the setting and the URLs can never disagree. Requires Acreage
+  Core 1.2.0.
+* New Link List widget. A footer column now stores a menu location or a
+  taxonomy and resolves it on every render, instead of storing the URLs as
+  they read on the day the page was built -- so the footer follows the
+  archive base wherever it goes, and a new province appears in the list the
+  moment it has a farm in it.
+* New "Footer farms menu" location, under Appearance > Menus.
+* The demo import builds its farm menus from typed menu items -- the archive
+  and the two categories -- rather than pasted links, so renaming the base
+  moves the menus with it.
+* Existing sites: the new footer arrives with a fresh demo import. A footer
+  already built keeps the links it has, and they keep working until the
+  archive base is changed.
 
 = 1.1.0 =
 * Species chips on a listing show a Wikipedia photograph and description on
