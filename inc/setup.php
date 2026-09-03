@@ -68,6 +68,13 @@ function acreage_setup() {
 		array(
 			'primary' => __( 'Primary menu', 'acreage' ),
 			'footer'  => __( 'Footer menu', 'acreage' ),
+
+			/*
+			 * The footer's farms column is a menu rather than typed links so that
+			 * renaming the archive base moves it too. Menu items know what they
+			 * point at; a pasted URL only knows where it pointed once.
+			 */
+			'footer_farms' => __( 'Footer farms menu', 'acreage' ),
 		)
 	);
 

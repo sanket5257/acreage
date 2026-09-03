@@ -14,7 +14,7 @@
  *
  * So a search that has already been scoped to farms is handed to the farms
  * archive template, which renders the assigned Elementor layout exactly as it
- * does at /game-farms/ and whose widgets read the keyword back out of the query
+ * does at the farms archive, and whose widgets read the keyword back out of the query
  * string. Anything else — a site-wide search across pages and posts — carries
  * on to index.php as before.
  *

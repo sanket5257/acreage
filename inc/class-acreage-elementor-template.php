@@ -975,15 +975,6 @@ class Acreage_Elementor_Template {
 	 * @return array
 	 */
 	public function build_footer() {
-		$provinces = function_exists( 'acreage_home_provinces' ) ? acreage_home_provinces( 10 ) : array();
-		$farms     = acreage_farms_url();
-
-		$province_links = array();
-
-		foreach ( $provinces as $province ) {
-			$province_links[] = array( $province['name'], $province['url'] );
-		}
-
 		$phone = acreage_option( 'phone', '' );
 		$email = acreage_option( 'email', '' );
 
@@ -1034,31 +1025,17 @@ class Acreage_Elementor_Template {
 
 					$this->column( array(
 						$this->eyebrow( __( 'Farms', 'acreage' ), self::STONE ),
-						$this->text( $this->footer_links( array(
-							array( __( 'All farms for sale', 'acreage' ), $farms ),
-							array( __( 'Game farms', 'acreage' ), add_query_arg( 'listing_category', 'game-farms', $farms ) ),
-							array( __( 'Cattle farms', 'acreage' ), add_query_arg( 'listing_category', 'cattle-farms', $farms ) ),
-							array( __( 'Sell your farm', 'acreage' ), acreage_sell_url() ),
-						) ), self::MUTED, 14 ),
+						$this->links_widget( 'footer_farms', 'listing_category' ),
 					), 20 ),
 
 					$this->column( array(
 						$this->eyebrow( __( 'Agency', 'acreage' ), self::STONE ),
-						$this->text( $this->footer_links( array(
-							array( __( 'About us', 'acreage' ), home_url( '/about-us/' ) ),
-							array( __( 'Articles & news', 'acreage' ), home_url( '/articles-news/' ) ),
-							array( __( 'Contact us', 'acreage' ), home_url( '/contact-us/' ) ),
-							array( __( 'Agency disclaimer', 'acreage' ), home_url( '/agency-disclaimer/' ) ),
-						) ), self::MUTED, 14 ),
+						$this->links_widget( 'footer' ),
 					), 20 ),
 
 					$this->column( array(
 						$this->eyebrow( __( 'Provinces', 'acreage' ), self::STONE ),
-						$this->text(
-							$this->footer_links( $province_links, 'acreage-f__nav--split' ),
-							self::MUTED,
-							14
-						),
+						$this->links_widget( '', 'province', true ),
 					), 32 ),
 				),
 				array(
@@ -1109,34 +1086,50 @@ class Acreage_Elementor_Template {
 	}
 
 	/**
-	 * A footer column's links, as a list rather than a sentence.
+	 * A footer link column, as a widget rather than as frozen HTML.
 	 *
-	 * The provinces used to be imploded with slashes into one paragraph, which
-	 * wrapped wherever the width happened to run out and left orphans hanging on
-	 * the second line. A list wraps into columns predictably and gives every
-	 * link its own hit area.
+	 * WHY THIS IS NOT A TEXT WIDGET ANY MORE
 	 *
-	 * @param array  $links Each entry [ label, url ].
-	 * @param string $extra Extra class, e.g. to split into two columns.
-	 * @return string
+	 * It used to be: footer_links() built <a href="…"> from the archive URL as
+	 * it stood at the moment the template was generated, and Elementor stored
+	 * that markup as page content. Content does not re-evaluate. So the first
+	 * time anyone changed the farms archive base — a setting we ship, on
+	 * Settings > Permalinks — every link in this footer pointed at a URL that
+	 * no longer existed, on a page nobody thinks to re-check.
+	 *
+	 * The Link List widget stores the intent instead: a menu location, or a
+	 * taxonomy to list. Both are resolved during the render, so the footer
+	 * follows the archive wherever it goes and picks up new provinces on its
+	 * own.
+	 *
+	 * @param string $location Menu location to render, if any.
+	 * @param string $fallback Taxonomy to list when that location has no menu —
+	 *                         a site that never imported the demo still gets a
+	 *                         working column rather than an empty one.
+	 * @param bool   $split    Two columns.
+	 * @return array
 	 */
-	private function footer_links( $links, $extra = '' ) {
-		if ( ! $links ) {
-			return '';
-		}
+	private function links_widget( $location, $fallback = '', $split = false ) {
+		$locations = get_nav_menu_locations();
+		$menu_id   = ( $location && ! empty( $locations[ $location ] ) ) ? (int) $locations[ $location ] : 0;
 
-		$items = '';
-
-		foreach ( $links as $link ) {
-			list( $label, $url ) = $link;
-			$items .= sprintf( '<li><a href="%s">%s</a></li>', esc_url( $url ), esc_html( $label ) );
-		}
-
-		return sprintf(
-			'<ul class="acreage-f__nav %s">%s</ul>',
-			esc_attr( $extra ),
-			$items
+		$settings = array(
+			'colour' => self::MUTED,
+			'size'   => array( 'unit' => 'px', 'size' => 14 ),
+			'split'  => $split ? 'yes' : '',
 		);
+
+		if ( $menu_id ) {
+			$settings['source'] = 'menu';
+			$settings['menu']   = $menu_id;
+		} else {
+			$settings['source']     = 'taxonomy';
+			$settings['taxonomy']   = $fallback ? $fallback : 'province';
+			$settings['limit']      = 10;
+			$settings['hide_empty'] = 'yes';
+		}
+
+		return $this->widget( 'acreage-links', $settings );
 	}
 
 	public function build_archive() {

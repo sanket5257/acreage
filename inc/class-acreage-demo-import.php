@@ -449,6 +449,13 @@ class Acreage_Demo_Import {
 			$locations['footer'] = $footer_id;
 		}
 
+		$farms_menu_id = $this->build_farms_menu( __( 'AGF Footer Farms', 'acreage' ), $pages );
+
+		if ( $farms_menu_id ) {
+			$state['menus'][]          = $farms_menu_id;
+			$locations['footer_farms'] = $farms_menu_id;
+		}
+
 		set_theme_mod( 'nav_menu_locations', $locations );
 
 		// Seed the contact details the header and footer display.
@@ -663,6 +670,68 @@ class Acreage_Demo_Import {
 	}
 
 	/**
+	 * The footer's farms column, as a menu that cannot go stale.
+	 *
+	 * Every item here is a typed menu item rather than a custom link, and that
+	 * distinction is the entire point. WordPress resolves a post_type_archive
+	 * item through get_post_type_archive_link() and a taxonomy item through
+	 * get_term_link(), on every render — so changing the farms archive base on
+	 * Settings > Permalinks moves this column with it. A custom link would hold
+	 * the URL that was correct on the day the demo was imported and quietly rot
+	 * from there, which is exactly what the old typed-HTML footer did.
+	 *
+	 * @param string $name  Menu name.
+	 * @param array  $pages Page map.
+	 * @return int|false
+	 */
+	private function build_farms_menu( $name, $pages ) {
+		$menu_id = wp_create_nav_menu( $name );
+
+		if ( is_wp_error( $menu_id ) ) {
+			return false;
+		}
+
+		$order = 1;
+
+		wp_update_nav_menu_item( $menu_id, 0, array(
+			'menu-item-title'     => __( 'All farms for sale', 'acreage' ),
+			'menu-item-object'    => 'listing',
+			'menu-item-type'      => 'post_type_archive',
+			'menu-item-status'    => 'publish',
+			'menu-item-position'  => $order++,
+		) );
+
+		foreach ( array( 'game-farms', 'cattle-farms' ) as $slug ) {
+			$term = get_term_by( 'slug', $slug, 'listing_category' );
+
+			if ( ! $term ) {
+				continue;
+			}
+
+			wp_update_nav_menu_item( $menu_id, 0, array(
+				'menu-item-title'     => $term->name,
+				'menu-item-object-id' => (int) $term->term_id,
+				'menu-item-object'    => 'listing_category',
+				'menu-item-type'      => 'taxonomy',
+				'menu-item-status'    => 'publish',
+				'menu-item-position'  => $order++,
+			) );
+		}
+
+		if ( ! empty( $pages['sell'] ) ) {
+			wp_update_nav_menu_item( $menu_id, 0, array(
+				'menu-item-object-id' => (int) $pages['sell'],
+				'menu-item-object'    => 'page',
+				'menu-item-type'      => 'post_type',
+				'menu-item-status'    => 'publish',
+				'menu-item-position'  => $order++,
+			) );
+		}
+
+		return (int) $menu_id;
+	}
+
+	/**
 	 * Add the comp's child items under "Farms for sale".
 	 *
 	 * The comp shows a single dropdown — Game farms, Cattle farms, Browse by
@@ -674,26 +743,51 @@ class Acreage_Demo_Import {
 	 * @param int $farms_page Farms for Sale page ID, for the archive base.
 	 */
 	private function add_farm_submenu( $menu_id, $parent_id, $farms_page ) {
-		$base = $farms_page ? get_permalink( $farms_page ) : home_url( '/' );
-
-		$children = array(
-			__( 'Game farms', 'acreage' )        => add_query_arg( 'listing_category', 'game-farms', $base ),
-			__( 'Cattle farms', 'acreage' )      => add_query_arg( 'listing_category', 'cattle-farms', $base ),
-			__( 'Browse by province', 'acreage' ) => $base . '#provinces',
-		);
-
 		$order = 1;
 
-		foreach ( $children as $label => $url ) {
+		/*
+		 * The two categories are taxonomy items, not custom links.
+		 *
+		 * A custom link stores the URL as it reads today. Change the farms
+		 * archive base afterwards and the dropdown still offers the old one,
+		 * with nothing to indicate it has stopped working. A taxonomy item
+		 * stores the term, and WordPress builds the URL on every render.
+		 */
+		foreach ( array( 'game-farms', 'cattle-farms' ) as $slug ) {
+			$term = get_term_by( 'slug', $slug, 'listing_category' );
+
+			if ( ! $term ) {
+				continue;
+			}
+
 			wp_update_nav_menu_item( $menu_id, 0, array(
-				'menu-item-title'     => $label,
-				'menu-item-url'       => $url,
-				'menu-item-type'      => 'custom',
+				'menu-item-title'     => $term->name,
+				'menu-item-object-id' => (int) $term->term_id,
+				'menu-item-object'    => 'listing_category',
+				'menu-item-type'      => 'taxonomy',
 				'menu-item-status'    => 'publish',
 				'menu-item-parent-id' => $parent_id,
 				'menu-item-position'  => $order++,
 			) );
 		}
+
+		/*
+		 * The anchor has to stay a custom link — it points at a section of the
+		 * archive, which no menu item type can express. It is written against
+		 * the archive as it stands now, so it is the one item here that a later
+		 * rename would strand. Keeping it built from get_post_type_archive_link()
+		 * at least means it is correct when the demo is imported.
+		 */
+		$base = function_exists( 'acreage_farms_url' ) ? acreage_farms_url() : home_url( '/' );
+
+		wp_update_nav_menu_item( $menu_id, 0, array(
+			'menu-item-title'     => __( 'Browse by province', 'acreage' ),
+			'menu-item-url'       => $base . '#provinces',
+			'menu-item-type'      => 'custom',
+			'menu-item-status'    => 'publish',
+			'menu-item-parent-id' => $parent_id,
+			'menu-item-position'  => $order++,
+		) );
 	}
 
 	/**
